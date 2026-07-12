@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     const r = await completeTask(value.room, value.task_id);
     const name = larkMemberName(userId);
     if (r.ok) {
-      const doneCard = buildDoneCard(value.title || r.task?.title || '任务', name, process.env.APP_URL || 'https://banjia-two.vercel.app/');
+      const doneCard = buildDoneCard(value.title || r.task?.title || '任务', name, process.env.APP_URL || 'https://banjia-two.vercel.app/', value.room);
       // New callback model wants {toast, card:{type:"raw",data}}; legacy wants the raw card body.
       res.status(200).json(isNew ? { toast: { type: 'success', content: `✅ 已由 ${name} 完成` }, card: { type: 'raw', data: doneCard } } : doneCard);
       return;

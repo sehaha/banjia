@@ -14,7 +14,8 @@ export default async function handler(req, res) {
   if (room && task) {
     try { const r = await completeTask(room, task); ok = !!r.ok; already = !!r.already; } catch { /* ok stays false */ }
   }
-  const app = 'https://banjia-two.vercel.app/';
+  // Link back INTO the shared room so the family lands on the synced board.
+  const app = room ? `https://banjia-two.vercel.app/#room=${encodeURIComponent(room)}` : 'https://banjia-two.vercel.app/';
   const bg = ok ? '#26332C' : '#8a3b2f';
   const icon = ok ? '✅' : '⚠️';
   const msg = ok ? (already ? '这条任务之前就已完成' : '已标记完成，全家清单已同步') : '未能更新，请到网页里操作';

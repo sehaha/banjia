@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   const { kind, board, today, appUrl, title, content, room } = body || {};
   try {
     let card;
-    if (kind === 'alert') card = buildAlertCard(title || '搬家提醒', content || '', appUrl);
+    if (kind === 'alert') card = buildAlertCard(title || '搬家提醒', content || '', appUrl, room);
     else card = buildBriefCard(summarize(board || {}, today), appUrl, room);
     const r = await sendCardToAll(card);
     res.status(200).json(r);

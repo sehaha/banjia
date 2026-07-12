@@ -3,8 +3,9 @@
 // spam. Call: GET /api/lark-guide?secret=...&user=<user_id>
 import { sendCardToUser } from '../lib/lark.js';
 
-const APP_URL = 'https://banjia-two.vercel.app/';
 const ROOM = process.env.LARK_SYNC_ROOM || '55VA8N';
+// Link INTO the shared room so tapping lands on the synced board (not a local copy).
+const APP_URL = `https://banjia-two.vercel.app/#room=${encodeURIComponent(ROOM)}`;
 
 function guideCard() {
   return {
