@@ -10,15 +10,17 @@ function guideCard() {
   return {
     schema: '2.0',
     config: { wide_screen_mode: true },
-    header: { title: { tag: 'plain_text', content: '📖 搬家小助手 · 使用说明' }, template: 'green' },
+    header: { title: { tag: 'plain_text', content: '📖 搬家小助手 · 使用说明 / How to use' }, template: 'green' },
     body: {
       elements: [
-        { tag: 'markdown', content: '**① 在群里直接指挥它** 💬\n@搬家小助手 后面用大白话说就行，例如：\n· `@搬家小助手 帮爸爸加个任务：明天上午去新房量沙发尺寸`\n· `@搬家小助手 把"修改USCIS地址"标记完成`\n· `@搬家小助手 把姥姥的打包任务改成P2`\n它会在群里回你一句确认。' },
+        { tag: 'markdown', content: '**① 在群里直接指挥它 / Just @ it in the group** 💬\n@搬家小助手 后面用大白话说就行，例如：\nJust @ the bot in plain language, e.g.:\n· `@搬家小助手 帮爸爸加个任务：明天上午去新房量沙发尺寸`\n· `@搬家小助手 把"修改USCIS地址"标记完成`\n· `@搬家小助手 把姥姥的打包任务改成P2`\n它会在群里回你一句确认。 / It replies with a quick confirmation.' },
         { tag: 'hr' },
-        { tag: 'markdown', content: '**② 每天早上的简报** ☀️\n会自动发来当天要做的重点，点卡片上的 **✅ 我来完成** 就能直接勾掉。' },
+        { tag: 'markdown', content: '**② 每天早上的简报 / Daily morning brief** ☀️\n自动发来当天重点，点卡片上的 **✅ 我来完成** 就能直接勾掉。\nA brief of the day’s key tasks arrives automatically — tap **✅ I’ll do it** on the card to check it off.' },
         { tag: 'hr' },
-        { tag: 'markdown', content: `**③ 网页清单** 🖥️\nbanjia-two.vercel.app（房间码 **${ROOM}**）\n· 群里或别人改了什么，网页 **~4 秒**自动更新，不用手动刷新\n· 右上角 🔄 旁出现**小红点** = 小助手刚更新了清单（嫌吵可在同步面板里关掉）\n· 看到「有新版本」提示，点 **刷新** 即可看到最新任务` },
-        { tag: 'button', text: { tag: 'plain_text', content: '🔗 打开搬家清单' }, type: 'primary', behaviors: [{ type: 'open_url', default_url: APP_URL }] },
+        { tag: 'markdown', content: `**③ 网页清单 / The web list** 🖥️\nbanjia-two.vercel.app（房间码 / room code **${ROOM}**）\n· 群里或别人改了什么，网页 **~4 秒**自动更新。 / Changes show on the web in ~4s, no manual refresh.\n· 右上角 🔄 旁的**小红点** = 小助手刚更新了清单（可在同步面板关掉）。 / A red dot by 🔄 means the assistant just updated the list (can be turned off).\n· 看到「有新版本 / New version」提示，点**刷新 / Refresh**。` },
+        { tag: 'hr' },
+        { tag: 'markdown', content: '**④ 中文 / English** 🌐\n网页右上角有 **中 / EN** 切换按钮，随时一键切换语言。\nUse the **中 / EN** toggle in the top-right corner to switch languages anytime.' },
+        { tag: 'button', text: { tag: 'plain_text', content: '🔗 打开搬家清单 / Open the list' }, type: 'primary', behaviors: [{ type: 'open_url', default_url: APP_URL }] },
       ],
     },
   };
