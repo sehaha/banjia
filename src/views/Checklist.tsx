@@ -71,8 +71,8 @@ export function Checklist({ store, cat, setCat }: { store: Store; cat: string; s
         </FilterRow>
       </div>
 
-      <div style={{ fontSize: 13, color: 'oklch(0.5 0.01 60)', marginBottom: 12 }}>
-        {t('共', 'Total')} <b style={{ fontFamily: "'Space Grotesk'" }}>{filtered.length}</b> {t('项 · 已完成', 'tasks · done')} <b style={{ fontFamily: "'Space Grotesk'" }}>{shownDone}</b>
+      <div style={{ fontSize: 13, color: 'oklch(0.5 0.01 60)', marginBottom: 12, fontFamily: "'Space Grotesk'" }}>
+        {t(`共 ${filtered.length} 项 · 已完成 ${shownDone}`, `${filtered.length} tasks · ${shownDone} done`)}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(288px,1fr))', gap: 12 }}>

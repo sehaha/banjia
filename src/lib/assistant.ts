@@ -1,6 +1,8 @@
 import type { AssistantAction, ChatMessage } from '../types';
+import { t } from './i18n';
 
 export interface AssistantContext {
+  lang?: 'zh' | 'en';
   today: string;
   person: string;
   schedule: { date: string; weekday: string; stage: string; goal: string }[];
@@ -23,6 +25,6 @@ export async function askAssistant(messages: ChatMessage[], context: AssistantCo
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, context }),
   });
-  if (!res.ok) throw new Error('网络错误 ' + res.status);
+  if (!res.ok) throw new Error(t('网络错误 ', 'Network error ') + res.status);
   return res.json();
 }

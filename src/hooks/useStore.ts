@@ -8,6 +8,7 @@ import {
   CATEGORIES,
   DATES,
 } from '../data/moveData';
+import { t as tr } from '../lib/i18n'; // aliased: `t` is used as the Task param throughout this file
 
 const LS_KEY = 'moveguide_v2';
 
@@ -80,9 +81,18 @@ function normalizeDate(d: string | undefined): string {
   return DATES[0];
 }
 
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  not_started: '未开始', in_progress: '进行中', done: '已完成', issue: '有问题',
-};
+const statusLabel = (s: TaskStatus): string => ({
+  not_started: tr('未开始', 'Not started'),
+  in_progress: tr('进行中', 'In progress'),
+  done: tr('已完成', 'Done'),
+  issue: tr('有问题', 'Issue'),
+}[s]);
+const utilLabel = (s: UtilityStatus): string => ({
+  not_started: tr('未开通', 'Not set up'),
+  in_progress: tr('申请中', 'Applying'),
+  done: tr('已确认', 'Confirmed'),
+  issue: tr('有问题', 'Issue'),
+}[s]);
 
 // ---------- pure action applier (operates over a snapshot, returns result + next state) ----------
 
@@ -118,13 +128,13 @@ export function computeAction(s: Persisted, a: AssistantAction, confirmed: boole
     mut: (t: Task) => Task,
   ): Applied => {
     const found = targets(s, match, id);
-    if (found.length === 0) return { result: { status: 'error', message: `没找到包含「${match}」的任务` } };
+    if (found.length === 0) return { result: { status: 'error', message: tr(`没找到包含「${match}」的任务`, `No task matching “${match}”`) } };
     if (found.length > 1)
       return {
         result: {
           status: 'ambiguous',
-          message: `有 ${found.length} 条任务包含「${match}」，你指哪一条？`,
-          candidates: found.slice(0, 8).map((t) => ({ id: t.id, title: t.title })),
+          message: tr(`有 ${found.length} 条任务包含「${match}」，你指哪一条？`, `${found.length} tasks match “${match}” — which one?`),
+          candidates: found.slice(0, 8).map((tk) => ({ id: tk.id, title: tk.title })),
         },
       };
     const t = found[0];
@@ -136,13 +146,13 @@ export function computeAction(s: Persisted, a: AssistantAction, confirmed: boole
       const owner = ownerId(s, a.owner);
       const pri = (a.priority as Priority) || 'P1';
       const title = a.title.trim();
-      if (!title) return { result: { status: 'error', message: '任务标题为空，未添加' } };
+      if (!title) return { result: { status: 'error', message: tr('任务标题为空，未添加', 'Task title is empty — not added') } };
       const nt: Task = {
         id: uid('ai'), title, owner, date: normalizeDate(a.date),
         category: a.category && CATEGORIES.includes(a.category) ? a.category : CATEGORIES[0],
         priority: pri, blocking: pri === 'P0', status: 'not_started', description: '',
       };
-      return { result: { status: 'done', message: `已添加「${title}」→ ${memberName(s, owner)}（${nt.date} ${pri}）` }, next: { ...s, tasks: [...s.tasks, nt] } };
+      return { result: { status: 'done', message: tr(`已添加「${title}」→ ${memberName(s, owner)}（${nt.date} ${pri}）`, `Added “${title}” → ${memberName(s, owner)} (${nt.date} ${pri})`) }, next: { ...s, tasks: [...s.tasks, nt] } };
     }
     case 'reassign': {
       const owner = ownerId(s, a.owner);
@@ -155,52 +165,54 @@ export function computeAction(s: Persisted, a: AssistantAction, confirmed: boole
           const counts = s.members.map((m) => s.tasks.filter((x) => (x.id === t.id ? owner : x.owner) === m.id).length);
           const avg = counts.reduce((sum, n) => sum + n, 0) / (counts.length || 1);
           const overloaded = cnt >= 4 && cnt > avg * 1.4 && cnt === Math.max(...counts);
-          return `已把「${t.title}」改派给 ${memberName(s, owner)}（TA 名下 ${cnt} 项${overloaded ? '，偏多，考虑分给别人' : ''}）`;
+          return tr(
+            `已把「${t.title}」改派给 ${memberName(s, owner)}（TA 名下 ${cnt} 项${overloaded ? '，偏多，考虑分给别人' : ''}）`,
+            `Reassigned “${t.title}” to ${memberName(s, owner)} (${cnt} task${cnt > 1 ? 's' : ''} on them${overloaded ? ' — that’s a lot, consider sharing' : ''})`,
+          );
         },
         (t) => ({ ...t, owner }),
       );
     }
     case 'set_status':
-      return single(a.match, a.id, (t) => `已把「${t.title}」标记为 ${STATUS_LABEL[a.status]}`, (t) => ({ ...t, status: a.status }));
+      return single(a.match, a.id, (t) => tr(`已把「${t.title}」标记为 ${statusLabel(a.status)}`, `Marked “${t.title}” as ${statusLabel(a.status)}`), (t) => ({ ...t, status: a.status }));
     case 'set_priority':
-      return single(a.match, a.id, (t) => `已把「${t.title}」设为 ${a.priority}`, (t) => ({ ...t, priority: a.priority, blocking: a.priority === 'P0' ? true : t.blocking }));
+      return single(a.match, a.id, (t) => tr(`已把「${t.title}」设为 ${a.priority}`, `Set “${t.title}” to ${a.priority}`), (t) => ({ ...t, priority: a.priority, blocking: a.priority === 'P0' ? true : t.blocking }));
     case 'set_date': {
       const date = normalizeDate(a.date);
-      return single(a.match, a.id, (t) => `已把「${t.title}」改到 ${date}`, (t) => ({ ...t, date }));
+      return single(a.match, a.id, (t) => tr(`已把「${t.title}」改到 ${date}`, `Moved “${t.title}” to ${date}`), (t) => ({ ...t, date }));
     }
     case 'set_blocking':
-      return single(a.match, a.id, (t) => `已把「${t.title}」标记为${a.blocking ? '阻塞搬家' : '不阻塞'}`, (t) => ({ ...t, blocking: a.blocking }));
+      return single(a.match, a.id, (t) => tr(`已把「${t.title}」标记为${a.blocking ? '阻塞搬家' : '不阻塞'}`, `Marked “${t.title}” as ${a.blocking ? 'blocking the move' : 'not blocking'}`), (t) => ({ ...t, blocking: a.blocking }));
     case 'delete_task': {
       const found = targets(s, a.match, a.id);
-      if (found.length === 0) return { result: { status: 'error', message: `没找到包含「${a.match}」的任务` } };
+      if (found.length === 0) return { result: { status: 'error', message: tr(`没找到包含「${a.match}」的任务`, `No task matching “${a.match}”`) } };
       if (found.length > 1)
-        return { result: { status: 'ambiguous', message: `有 ${found.length} 条任务包含「${a.match}」，删哪一条？`, candidates: found.slice(0, 8).map((t) => ({ id: t.id, title: t.title })) } };
+        return { result: { status: 'ambiguous', message: tr(`有 ${found.length} 条任务包含「${a.match}」，删哪一条？`, `${found.length} tasks match “${a.match}” — which to delete?`), candidates: found.slice(0, 8).map((tk) => ({ id: tk.id, title: tk.title })) } };
       const t = found[0];
-      if (!confirmed) return { result: { status: 'confirm', message: `确定删除任务「${t.title}」？` } };
-      return { result: { status: 'done', message: `已删除任务「${t.title}」` }, next: { ...s, tasks: s.tasks.filter((x) => x.id !== t.id) } };
+      if (!confirmed) return { result: { status: 'confirm', message: tr(`确定删除任务「${t.title}」？`, `Delete the task “${t.title}”?`) } };
+      return { result: { status: 'done', message: tr(`已删除任务「${t.title}」`, `Deleted “${t.title}”`) }, next: { ...s, tasks: s.tasks.filter((x) => x.id !== t.id) } };
     }
     case 'add_member': {
       const n = a.name.trim();
-      if (!n) return { result: { status: 'error', message: '成员名为空' } };
-      if (s.members.some((m) => m.name === n)) return { result: { status: 'error', message: `成员「${n}」已存在` } };
-      const member: Person = { id: uid('m'), name: n, role: a.role || '家庭成员', hue: HUE_PALETTE[s.members.length % HUE_PALETTE.length] };
-      return { result: { status: 'done', message: `已添加成员「${n}」` }, next: { ...s, members: [...s.members, member] } };
+      if (!n) return { result: { status: 'error', message: tr('成员名为空', 'Member name is empty') } };
+      if (s.members.some((m) => m.name === n)) return { result: { status: 'error', message: tr(`成员「${n}」已存在`, `Member “${n}” already exists`) } };
+      const member: Person = { id: uid('m'), name: n, role: a.role || tr('家庭成员', 'Family member'), hue: HUE_PALETTE[s.members.length % HUE_PALETTE.length] };
+      return { result: { status: 'done', message: tr(`已添加成员「${n}」`, `Added member “${n}”`) }, next: { ...s, members: [...s.members, member] } };
     }
     case 'rename_member': {
       const q = a.match.trim().toLowerCase();
       const target = s.members.find((m) => m.id.toLowerCase() === q || m.name.toLowerCase() === q);
-      if (!target) return { result: { status: 'error', message: `没找到成员「${a.match}」` } };
+      if (!target) return { result: { status: 'error', message: tr(`没找到成员「${a.match}」`, `No member named “${a.match}”`) } };
       const newName = a.name.trim();
-      if (!newName) return { result: { status: 'error', message: '新名字为空' } };
-      return { result: { status: 'done', message: `已把「${target.name}」改名为「${newName}」` }, next: { ...s, members: s.members.map((m) => (m.id === target.id ? { ...m, name: newName } : m)) } };
+      if (!newName) return { result: { status: 'error', message: tr('新名字为空', 'New name is empty') } };
+      return { result: { status: 'done', message: tr(`已把「${target.name}」改名为「${newName}」`, `Renamed “${target.name}” to “${newName}”`) }, next: { ...s, members: s.members.map((m) => (m.id === target.id ? { ...m, name: newName } : m)) } };
     }
     case 'set_utility': {
       const q = a.name.trim().toLowerCase();
       const found = s.utils.filter((u) => u.name.toLowerCase().includes(q) || u.provider.toLowerCase().includes(q));
-      if (found.length === 0) return { result: { status: 'error', message: `没找到服务「${a.name}」` } };
+      if (found.length === 0) return { result: { status: 'error', message: tr(`没找到服务「${a.name}」`, `No service named “${a.name}”`) } };
       const u = found[0];
-      const label = { not_started: '未开通', in_progress: '申请中', done: '已确认', issue: '有问题' }[a.status];
-      return { result: { status: 'done', message: `已把「${u.name}」设为 ${label}` }, next: { ...s, utils: s.utils.map((x) => (x.id === u.id ? { ...x, status: a.status } : x)) } };
+      return { result: { status: 'done', message: tr(`已把「${u.name}」设为 ${utilLabel(a.status)}`, `Set “${u.name}” to ${utilLabel(a.status)}`) }, next: { ...s, utils: s.utils.map((x) => (x.id === u.id ? { ...x, status: a.status } : x)) } };
     }
     case 'bulk_update': {
       const f = a.filter || {};
@@ -213,29 +225,30 @@ export function computeAction(s: Persisted, a: AssistantAction, confirmed: boole
           (!fDate || t.date === fDate) &&
           (!f.category || t.category === f.category),
       );
-      if (matched.length === 0) return { result: { status: 'error', message: '没有符合条件的任务' } };
+      if (matched.length === 0) return { result: { status: 'error', message: tr('没有符合条件的任务', 'No tasks match those filters') } };
       const set = a.set || {};
       const setOwner = set.owner ? ownerId(s, set.owner) : undefined;
       const setDate = set.date ? normalizeDate(set.date) : undefined;
       const parts: string[] = [];
-      if (setOwner) parts.push(`负责人→${memberName(s, setOwner)}`);
-      if (set.priority) parts.push(`优先级→${set.priority}`);
-      if (set.status) parts.push(`状态→${STATUS_LABEL[set.status]}`);
-      if (setDate) parts.push(`日期→${setDate}`);
-      if (!parts.length) return { result: { status: 'error', message: '没有指定要修改的内容' } };
-      if (!confirmed) return { result: { status: 'confirm', message: `将更新 ${matched.length} 条任务：${parts.join('、')}` } };
+      if (setOwner) parts.push(tr(`负责人→${memberName(s, setOwner)}`, `owner → ${memberName(s, setOwner)}`));
+      if (set.priority) parts.push(tr(`优先级→${set.priority}`, `priority → ${set.priority}`));
+      if (set.status) parts.push(tr(`状态→${statusLabel(set.status)}`, `status → ${statusLabel(set.status)}`));
+      if (setDate) parts.push(tr(`日期→${setDate}`, `date → ${setDate}`));
+      if (!parts.length) return { result: { status: 'error', message: tr('没有指定要修改的内容', 'Nothing specified to change') } };
+      const sep = tr('、', ', ');
+      if (!confirmed) return { result: { status: 'confirm', message: tr(`将更新 ${matched.length} 条任务：${parts.join(sep)}`, `Will update ${matched.length} tasks: ${parts.join(sep)}`) } };
       const ids = new Set(matched.map((t) => t.id));
       const apply = (t: Task): Task => (ids.has(t.id) ? { ...t, ...(setOwner ? { owner: setOwner } : {}), ...(set.priority ? { priority: set.priority } : {}), ...(set.status ? { status: set.status } : {}), ...(setDate ? { date: setDate } : {}) } : t);
-      return { result: { status: 'done', message: `已更新 ${matched.length} 条任务：${parts.join('、')}` }, next: { ...s, tasks: s.tasks.map(apply) } };
+      return { result: { status: 'done', message: tr(`已更新 ${matched.length} 条任务：${parts.join(sep)}`, `Updated ${matched.length} tasks: ${parts.join(sep)}`) }, next: { ...s, tasks: s.tasks.map(apply) } };
     }
     case 'remember': {
       const note = (a.note || '').trim();
-      if (!note) return { result: { status: 'error', message: '要记的内容为空' } };
-      if (s.memory.includes(note)) return { result: { status: 'done', message: `我已经记着「${note}」了` } };
-      return { result: { status: 'done', message: `已记住「${note}」` }, next: { ...s, memory: [...s.memory, note] } };
+      if (!note) return { result: { status: 'error', message: tr('要记的内容为空', 'Nothing to remember') } };
+      if (s.memory.includes(note)) return { result: { status: 'done', message: tr(`我已经记着「${note}」了`, `I already remember “${note}”`) } };
+      return { result: { status: 'done', message: tr(`已记住「${note}」`, `Got it — I’ll remember “${note}”`) }, next: { ...s, memory: [...s.memory, note] } };
     }
     default:
-      return { result: { status: 'error', message: '未知操作' } };
+      return { result: { status: 'error', message: tr('未知操作', 'Unknown action') } };
   }
 }
 
@@ -334,7 +347,7 @@ export function useStore(): Store {
     setState((s) => ({ ...s, docs: s.docs.map((d) => (d.id === id ? { ...d, body } : d)) }));
   }, []);
 
-  const addMember = useCallback((name: string, role = '家庭成员') => {
+  const addMember = useCallback((name: string, role = tr('家庭成员', 'Family member')) => {
     const n = name.trim();
     if (!n) return;
     setState((s) => {

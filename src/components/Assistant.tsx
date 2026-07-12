@@ -4,7 +4,13 @@ import type { AssistantAction, ApplyResult, ChatMessage } from '../types';
 import { TODAY, WEEK, DATES, STAGE, GOAL, md } from '../data/moveData';
 import { askAssistant, type AssistantContext } from '../lib/assistant';
 import { ACCENT } from '../lib/ui';
-import { t, curLang } from '../lib/i18n';
+import { t, curLang, useI18n } from '../lib/i18n';
+
+const GREETING_ID = 'greeting';
+const greetingText = () => t(
+  '你好，我是搬家小助手 👋 试试「今日简报」，或说「帮 Tommy 加个任务：整理书桌 7/8 P2」「把姥姥所有 P2 推到 7/10」。',
+  'Hi, I’m your moving assistant 👋 Try “today’s brief”, or say “add a task for Tommy: tidy the desk 7/8 P2” or “push all of Grandma’s P2 tasks to 7/10”.',
+);
 
 let seq = 0;
 const uid = () => `m${(seq += 1).toString(36)}`;
@@ -50,9 +56,15 @@ export function Assistant({ store, isMobile = false }: { store: Store; isMobile?
   const fabBottom = isMobile ? 76 : 20;
   const panelBottom = isMobile ? 140 : 84;
   const [open, setOpen] = useState(false);
+  const { lang } = useI18n();
   const [messages, setMessages] = useState<UIMsg[]>([
-    { id: uid(), role: 'assistant', content: t('你好，我是搬家小助手 👋 试试「今日简报」，或说「帮 Tommy 加个任务：整理书桌 7/8 P2」「把姥姥所有 P2 推到 7/10」。', 'Hi, I’m your moving assistant 👋 Try “today’s brief”, or say “add a task for Tommy: tidy the desk 7/8 P2” or “push all of Grandma’s P2 tasks to 7/10”.') },
+    { id: GREETING_ID, role: 'assistant', content: greetingText() },
   ]);
+  // Keep the opening greeting in sync with the language while it's still the only
+  // message (an ongoing conversation is left untouched — chat history isn't retranslated).
+  useEffect(() => {
+    setMessages((prev) => (prev.length === 1 && prev[0].id === GREETING_ID ? [{ ...prev[0], content: greetingText() }] : prev));
+  }, [lang]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
@@ -74,6 +86,7 @@ export function Assistant({ store, isMobile = false }: { store: Store; isMobile?
     const total = s.tasks.length;
     const done = s.tasks.filter((t) => t.status === 'done').length;
     return {
+      lang: curLang(),
       today: `${md(TODAY)} ${WEEK[TODAY]}`,
       person: nameOf(s.person),
       schedule: DATES.map((d) => ({ date: d, weekday: WEEK[d], stage: STAGE[d], goal: GOAL[d] })),
