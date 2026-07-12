@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body { font-family: 'Noto Sans SC', system-ui, sans-serif; background: oklch(0.985 0.006 85); color: oklch(0.28 0.012 60); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; color: inherit; outline: none; }
+select:focus, input:focus, textarea:focus { border-color: oklch(0.62 0.06 165) !important; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: oklch(0.86 0.01 80); border-radius: 8px; border: 2px solid oklch(0.985 0.006 85); }
+@keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden">
+
+  <!-- ===== TOP BAR ===== -->
+  <header style="height:60px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid oklch(0.92 0.006 85);background:oklch(0.99 0.004 85);z-index:5">
+    <div style="display:flex;align-items:center;gap:11px">
+      <div style="{{ logoStyle }}">M</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;letter-spacing:.01em">Move Guide</div>
+        <div style="font-size:11px;color:oklch(0.55 0.01 60)">家庭搬家执行指南</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <sc-if value="{{ showProgress }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:88px;height:7px;background:oklch(0.92 0.006 85);border-radius:999px;overflow:hidden"><div style="{{ dashPctBar }}"></div></div>
+          <span style="font-family:'Space Grotesk';font-size:12.5px;font-weight:600;color:oklch(0.4 0.012 60)">{{ dashPct }}%</span>
+        </div>
+      </sc-if>
+      <div style="display:flex;background:oklch(0.94 0.006 85);border-radius:10px;padding:3px">
+        <button onClick="{{ goFront }}" style="{{ frontSwitchStyle }}">家庭端</button>
+        <button onClick="{{ goAdmin }}" style="{{ adminSwitchStyle }}">管理后台</button>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex:1;display:flex;min-height:0">
+
+    <!-- ===== SIDEBAR ===== -->
+    <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}"><aside style="width:224px;flex:none;border-right:1px solid oklch(0.92 0.006 85);background:oklch(0.99 0.004 85);padding:18px 13px;display:flex;flex-direction:column;gap:3px;overflow:auto">
+      <div style="font-size:10.5px;letter-spacing:.14em;color:oklch(0.66 0.01 60);padding:4px 12px 8px;font-weight:500">{{ navGroupLabel }}</div>
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <button onClick="{{ n.onClick }}" style="{{ n.style }}">
+          <span style="font-weight:500">{{ n.label }}</span>
+          <sc-if value="{{ n.en }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Space Grotesk';font-size:10.5px;opacity:.55;letter-spacing:.05em">{{ n.en }}</span></sc-if>
+        </button>
+      </sc-for>
+      <div style="margin-top:auto;padding:14px 12px 4px;border-top:1px solid oklch(0.93 0.006 85);font-size:11px;color:oklch(0.62 0.01 60);line-height:1.6">目标搬家日<br><span style="font-family:'Space Grotesk';font-size:15px;font-weight:600;color:oklch(0.35 0.012 60)">7/9 周四</span></div>
+    </aside></sc-if>
+
+    <!-- ===== MAIN ===== -->
+    <main style="{{ mainStyle }}">
+      <div style="max-width:1060px;margin:0 auto">
+
+        <!-- ========== DASHBOARD ========== -->
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:22px">
+
+            <div style="background:#26332C;border-radius:18px;padding:26px 30px;color:white">
+              <div style="font-family:'Space Grotesk';font-size:11px;letter-spacing:.16em;opacity:.55">MOVE GUIDE · 家庭搬家执行指南</div>
+              <div style="display:flex;align-items:baseline;gap:14px;margin-top:14px;flex-wrap:wrap">
+                <div style="font-size:30px;font-weight:700;letter-spacing:-.01em">17 Dava</div>
+                <div style="font-size:22px;opacity:.45">→</div>
+                <div style="font-size:30px;font-weight:700;letter-spacing:-.01em">25 New Dawn</div>
+                <div style="margin-left:auto;font-size:13px;opacity:.6">Irvine, CA</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;background:rgba(255,255,255,.13);border-radius:12px;overflow:hidden;margin-top:22px">
+                <div style="background:#26332C;padding:14px 16px"><div style="font-size:11px;opacity:.6;margin-bottom:6px">当前阶段</div><div style="font-size:16px;font-weight:600">{{ stageLabel }}</div></div>
+                <div style="background:#26332C;padding:14px 16px"><div style="font-size:11px;opacity:.6;margin-bottom:6px">距离搬家</div><div style="font-family:'Space Grotesk';font-size:19px;font-weight:600">{{ daysLeft }} <span style="font-size:12px;opacity:.7;font-family:'Noto Sans SC'">天</span></div></div>
+                <div style="background:#26332C;padding:14px 16px"><div style="font-size:11px;opacity:.6;margin-bottom:6px">P0 待办</div><div style="font-family:'Space Grotesk';font-size:19px;font-weight:600;color:oklch(0.78 0.13 40)">{{ p0Remain }}</div></div>
+                <div style="background:#26332C;padding:14px 16px"><div style="font-size:11px;opacity:.6;margin-bottom:6px">进行中</div><div style="font-family:'Space Grotesk';font-size:19px;font-weight:600">{{ inProg }}</div></div>
+              </div>
+              <div style="margin-top:18px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;opacity:.75;margin-bottom:7px"><span>总完成度</span><span style="font-family:'Space Grotesk'">{{ dashDone }} / {{ dashTotal }} · {{ dashPct }}%</span></div>
+                <div style="height:9px;background:rgba(255,255,255,.14);border-radius:999px;overflow:hidden"><div style="{{ dashPctBar }}"></div></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px;font-weight:700">今日任务</span><span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.55 0.01 60)">{{ todayDateLabel }}</span></div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:14px;margin-top:14px">
+                <sc-for list="{{ todayGroups }}" as="g" hint-placeholder-count="3">
+                  <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:16px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                      <span style="{{ g.dotStyle }}"></span>
+                      <span style="font-weight:600;font-size:15px">{{ g.name }}</span>
+                      <span style="margin-left:auto;font-family:'Space Grotesk';font-size:12px;color:oklch(0.58 0.01 60)">{{ g.doneCount }}/{{ g.total }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:9px">
+                      <sc-for list="{{ g.tasks }}" as="t" hint-placeholder-count="2">
+                        <div style="display:flex;gap:10px;align-items:flex-start">
+                          <button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button>
+                          <div style="flex:1;min-width:0">
+                            <div style="{{ t.titleStyle }}">{{ t.title }}</div>
+                            <div style="display:flex;gap:6px;margin-top:5px"><span style="{{ t.priBadge }}">{{ t.priority }}</span><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span></div>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:oklch(0.975 0.028 40);border:1px solid oklch(0.87 0.07 38);border-radius:14px;padding:18px 20px">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.58 0.17 30)"></span><span style="font-weight:700;font-size:15px;color:oklch(0.46 0.16 32)">紧急提醒 · P0 未完成 {{ p0Remain }} 项</span></div>
+              <div style="display:flex;flex-direction:column;gap:9px;margin-top:13px">
+                <sc-for list="{{ urgentList }}" as="u" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:11px;font-size:13.5px">
+                    <button onClick="{{ u.onToggle }}" style="{{ u.checkStyle }}"><sc-if value="{{ u.checked }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button>
+                    <span style="flex:1;min-width:0;{{ u.plainTitleStyle }}">{{ u.title }}</span>
+                    <span style="{{ u.ownerBadge }}">{{ u.ownerName }}</span>
+                    <span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.55 0.06 40)">{{ u.dateShort }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;letter-spacing:.05em;color:oklch(0.58 0.01 60);font-weight:500;margin-bottom:10px">快捷入口</div>
+              <div style="display:flex;flex-wrap:wrap;gap:10px">
+                <sc-for list="{{ quickLinks }}" as="q" hint-placeholder-count="5">
+                  <button onClick="{{ q.onClick }}" style="padding:11px 16px;border-radius:11px;border:1px solid oklch(0.9 0.006 85);background:white;font-size:13.5px;cursor:pointer;font-weight:500;color:oklch(0.32 0.012 60)">{{ q.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+          </div>
+        </sc-if>
+
+        <!-- ========== TIMELINE ========== -->
+        <sc-if value="{{ isTimeline }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:20px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">TIMELINE</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">时间计划</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">按日期推进，每日一张卡片，减少遗漏</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+              <div style="{{ d.cardStyle }}">
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                  <div style="text-align:center;min-width:52px">
+                    <div style="font-family:'Space Grotesk';font-size:22px;font-weight:700;color:oklch(0.3 0.012 60)">{{ d.md }}</div>
+                    <div style="font-size:11px;color:oklch(0.58 0.01 60)">{{ d.weekday }}</div>
+                  </div>
+                  <div style="width:1px;height:40px;background:oklch(0.92 0.006 85)"></div>
+                  <div style="min-width:0">
+                    <div style="display:flex;gap:8px;align-items:center"><span style="font-weight:700;font-size:16px">{{ d.stage }}</span><sc-if value="{{ d.isToday }}" hint-placeholder-val="{{ true }}"><span style="{{ todayBadge }}">今天</span></sc-if></div>
+                    <div style="font-size:12.5px;color:oklch(0.55 0.01 60);margin-top:2px">{{ d.goal }}</div>
+                  </div>
+                  <div style="margin-left:auto;text-align:right">
+                    <div style="font-family:'Space Grotesk';font-size:12.5px;color:oklch(0.55 0.01 60)">{{ d.doneCount }} / {{ d.total }}</div>
+                    <div style="width:92px;height:6px;background:oklch(0.93 0.006 85);border-radius:999px;margin-top:5px;overflow:hidden"><div style="{{ d.barStyle }}"></div></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:10px;margin-top:16px">
+                  <sc-for list="{{ d.tasks }}" as="t" hint-placeholder-count="3">
+                    <div style="{{ t.cardStyle }}">
+                      <button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button>
+                      <div style="flex:1;min-width:0">
+                        <div style="{{ t.titleStyle }}">{{ t.title }}</div>
+                        <sc-if value="{{ t.desc }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:oklch(0.56 0.01 60);margin-top:3px;line-height:1.5">{{ t.desc }}</div></sc-if>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center"><span style="{{ t.ownerBadge }}">{{ t.ownerName }}</span><span style="{{ t.priBadge }}">{{ t.priority }}</span><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span><sc-if value="{{ t.blocking }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:oklch(0.5 0.16 25);border:1px solid oklch(0.85 0.08 25);padding:1px 7px;border-radius:6px">阻塞搬家</span></sc-if></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== PEOPLE ========== -->
+        <sc-if value="{{ isPeople }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">PEOPLE</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">家庭分工</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">每个人只看自己的任务</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <sc-for list="{{ personTabs }}" as="p" hint-placeholder-count="5">
+              <button onClick="{{ p.onClick }}" style="{{ p.style }}"><span style="{{ p.dotStyle }}"></span>{{ p.name }}</button>
+            </sc-for>
+          </div>
+          <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="{{ selAvatar }}">{{ selInitial }}</div>
+            <div><div style="font-size:18px;font-weight:700">{{ selName }}</div><div style="font-size:12.5px;color:oklch(0.55 0.01 60)">{{ selRole }}</div></div>
+            <div style="display:flex;gap:20px;margin-left:auto;flex-wrap:wrap">
+              <div style="text-align:center"><div style="font-family:'Space Grotesk';font-size:20px;font-weight:700">{{ myTotal }}</div><div style="font-size:11px;color:oklch(0.58 0.01 60)">总任务</div></div>
+              <div style="text-align:center"><div style="font-family:'Space Grotesk';font-size:20px;font-weight:700;color:oklch(0.58 0.13 150)">{{ myDone }}</div><div style="font-size:11px;color:oklch(0.58 0.01 60)">已完成</div></div>
+              <div style="text-align:center"><div style="font-family:'Space Grotesk';font-size:20px;font-weight:700;color:oklch(0.58 0.16 30)">{{ myUrgent }}</div><div style="font-size:11px;color:oklch(0.58 0.01 60)">P0 待办</div></div>
+              <div style="min-width:130px"><div style="font-family:'Space Grotesk';font-size:12.5px;color:oklch(0.55 0.01 60);margin-bottom:6px">{{ myPct }}% 完成</div><div style="height:7px;background:oklch(0.93 0.006 85);border-radius:999px;overflow:hidden"><div style="{{ myPctBar }}"></div></div></div>
+            </div>
+          </div>
+          <sc-if value="{{ hasToday }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13px;font-weight:600;color:oklch(0.4 0.012 60);margin:6px 0 10px">今日任务 · {{ todayDateLabel }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:12px;margin-bottom:22px">
+              <sc-for list="{{ myTodayViews }}" as="t" hint-placeholder-count="2">
+                <div style="{{ t.cardStyle }}"><button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button><div style="flex:1;min-width:0"><div style="{{ t.titleStyle }}">{{ t.title }}</div><sc-if value="{{ t.desc }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:oklch(0.56 0.01 60);margin-top:3px;line-height:1.5">{{ t.desc }}</div></sc-if><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center"><span style="{{ t.priBadge }}">{{ t.priority }}</span><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span></div></div><span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.62 0.01 60)">{{ t.dateShort }}</span></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="font-size:13px;font-weight:600;color:oklch(0.4 0.012 60);margin:6px 0 10px">未完成 · {{ myUndone }}</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:12px;margin-bottom:22px">
+            <sc-for list="{{ myUndoneViews }}" as="t" hint-placeholder-count="4">
+              <div style="{{ t.cardStyle }}"><button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button><div style="flex:1;min-width:0"><div style="{{ t.titleStyle }}">{{ t.title }}</div><sc-if value="{{ t.desc }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:oklch(0.56 0.01 60);margin-top:3px;line-height:1.5">{{ t.desc }}</div></sc-if><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center"><span style="{{ t.priBadge }}">{{ t.priority }}</span><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span><sc-if value="{{ t.blocking }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:oklch(0.5 0.16 25);border:1px solid oklch(0.85 0.08 25);padding:1px 7px;border-radius:6px">阻塞搬家</span></sc-if></div></div><span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.62 0.01 60)">{{ t.dateShort }}</span></div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasDone }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13px;font-weight:600;color:oklch(0.4 0.012 60);margin:6px 0 10px">已完成 · {{ myDone }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:12px">
+              <sc-for list="{{ myDoneViews }}" as="t" hint-placeholder-count="2">
+                <div style="{{ t.cardStyle }}"><button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button><div style="flex:1;min-width:0"><div style="{{ t.titleStyle }}">{{ t.title }}</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center"><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span></div></div><span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.62 0.01 60)">{{ t.dateShort }}</span></div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- ========== CHECKLIST ========== -->
+        <sc-if value="{{ isChecklist }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">CHECKLIST</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">任务清单</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">全部任务集中管理，可按人、时间、分类筛选</div>
+          </div>
+          <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:16px 18px;margin-bottom:18px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="font-size:12px;color:oklch(0.55 0.01 60);width:52px;flex:none">负责人</span><sc-for list="{{ ownerChips }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="font-size:12px;color:oklch(0.55 0.01 60);width:52px;flex:none">时间</span><sc-for list="{{ dateChips }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="font-size:12px;color:oklch(0.55 0.01 60);width:52px;flex:none">分类</span><select value="{{ fCatVal }}" onChange="{{ onCat }}" style="padding:7px 11px;border:1px solid oklch(0.88 0.008 85);border-radius:9px;font-size:13px;background:white;cursor:pointer"><sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="11"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+          </div>
+          <div style="font-size:13px;color:oklch(0.5 0.01 60);margin-bottom:12px">共 <b style="font-family:'Space Grotesk'">{{ shownCount }}</b> 项 · 已完成 <b style="font-family:'Space Grotesk'">{{ shownDone }}</b></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:12px">
+            <sc-for list="{{ filteredViews }}" as="t" hint-placeholder-count="8">
+              <div style="{{ t.cardStyle }}"><button onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><sc-if value="{{ t.checked }}" hint-placeholder-val="{{ true }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></sc-if></button><div style="flex:1;min-width:0"><div style="{{ t.titleStyle }}">{{ t.title }}</div><sc-if value="{{ t.desc }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:oklch(0.56 0.01 60);margin-top:3px;line-height:1.5">{{ t.desc }}</div></sc-if><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center"><span style="{{ t.ownerBadge }}">{{ t.ownerName }}</span><span style="{{ t.priBadge }}">{{ t.priority }}</span><span style="{{ t.statusBadge }}">{{ t.statusLabel }}</span><span style="font-size:11px;color:oklch(0.6 0.01 60)">{{ t.category }}</span><sc-if value="{{ t.blocking }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:oklch(0.5 0.16 25);border:1px solid oklch(0.85 0.08 25);padding:1px 7px;border-radius:6px">阻塞搬家</span></sc-if></div></div><span style="font-family:'Space Grotesk';font-size:12px;color:oklch(0.62 0.01 60)">{{ t.dateShort }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== UTILITIES ========== -->
+        <sc-if value="{{ isUtilities }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">UTILITIES</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">服务开通</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">集中管理新旧房服务，点击状态可切换 · 避免开错、关早、漏退设备</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:20px">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.55 0.1 165)"></span><span style="font-weight:700;font-size:15px">新房服务 · 25 New Dawn</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ newUtils }}" as="u" hint-placeholder-count="6">
+                  <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:16px 18px">
+                    <div style="display:flex;align-items:center;gap:10px"><div style="font-weight:600;font-size:15px;flex:1">{{ u.name }}</div><button onClick="{{ u.onCycle }}" style="{{ u.statusStyle }}">{{ u.statusLabel }}</button></div>
+                    <div style="font-size:12.5px;color:oklch(0.55 0.01 60);margin-top:4px">{{ u.provider }}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;font-size:12.5px"><div><div style="color:oklch(0.62 0.01 60);font-size:11px;margin-bottom:2px">地址</div><div>{{ u.address }}</div></div><div><div style="color:oklch(0.62 0.01 60);font-size:11px;margin-bottom:2px">开始日期</div><div style="font-family:'Space Grotesk'">{{ u.start }}</div></div></div>
+                    <div style="margin-top:11px;font-size:12px;color:oklch(0.5 0.01 60);background:oklch(0.97 0.005 85);padding:8px 11px;border-radius:8px;line-height:1.5">{{ u.note }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.6 0.02 60)"></span><span style="font-weight:700;font-size:15px">旧房服务 · 17 Dava</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ oldUtils }}" as="u" hint-placeholder-count="2">
+                  <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:16px 18px">
+                    <div style="display:flex;align-items:center;gap:10px"><div style="font-weight:600;font-size:15px;flex:1">{{ u.name }}</div><button onClick="{{ u.onCycle }}" style="{{ u.statusStyle }}">{{ u.statusLabel }}</button></div>
+                    <div style="font-size:12.5px;color:oklch(0.55 0.01 60);margin-top:4px">{{ u.provider }}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;font-size:12.5px"><div><div style="color:oklch(0.62 0.01 60);font-size:11px;margin-bottom:2px">地址</div><div>{{ u.address }}</div></div><div><div style="color:oklch(0.62 0.01 60);font-size:11px;margin-bottom:2px">处理</div><div style="font-family:'Space Grotesk'">{{ u.start }}</div></div></div>
+                    <div style="margin-top:11px;font-size:12px;color:oklch(0.5 0.01 60);background:oklch(0.97 0.005 85);padding:8px 11px;border-radius:8px;line-height:1.5">{{ u.note }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ========== DOCS ========== -->
+        <sc-if value="{{ isDocs }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">DOCS</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">文件与模板</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">常用话术、模板与清单，一键复制</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+            <sc-for list="{{ docCards }}" as="d" hint-placeholder-count="7">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:18px;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+                  <span style="font-weight:600;font-size:15px;flex:1">{{ d.title }}</span>
+                  <span style="font-size:11px;color:oklch(0.5 0.06 165);background:oklch(0.95 0.02 165);padding:2px 8px;border-radius:6px">{{ d.tag }}</span>
+                  <button onClick="{{ d.onCopy }}" style="{{ d.copyStyle }}">{{ d.copyLabel }}</button>
+                </div>
+                <div style="white-space:pre-wrap;font-size:13px;line-height:1.65;color:oklch(0.4 0.01 60);background:oklch(0.98 0.004 85);border-radius:10px;padding:14px;flex:1">{{ d.body }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== ADMIN: OVERVIEW ========== -->
+        <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">ADMIN · OVERVIEW</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">数据总览</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">整体进度、每人完成率、每日完成率</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px">
+            <sc-for list="{{ statCards }}" as="c" hint-placeholder-count="4">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:18px 20px"><div style="font-size:12.5px;color:oklch(0.55 0.01 60)">{{ c.label }}</div><div style="{{ c.valueStyle }}">{{ c.value }}</div><div style="font-size:11.5px;color:oklch(0.6 0.01 60);margin-top:3px">{{ c.sub }}</div></div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
+            <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:20px">
+              <div style="font-weight:700;font-size:15px;margin-bottom:16px">每人完成率</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-for list="{{ perPerson }}" as="p" hint-placeholder-count="5">
+                  <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="display:flex;gap:7px;align-items:center"><span style="{{ p.dotStyle }}"></span>{{ p.name }}</span><span style="font-family:'Space Grotesk';color:oklch(0.55 0.01 60)">{{ p.done }}/{{ p.total }} · {{ p.pct }}%</span></div><div style="height:8px;background:oklch(0.93 0.006 85);border-radius:999px;overflow:hidden"><div style="{{ p.barStyle }}"></div></div></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:20px">
+              <div style="font-weight:700;font-size:15px;margin-bottom:16px">每日完成率</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-for list="{{ perDay }}" as="p" hint-placeholder-count="7">
+                  <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>{{ p.name }}</span><span style="font-family:'Space Grotesk';color:oklch(0.55 0.01 60)">{{ p.done }}/{{ p.total }} · {{ p.pct }}%</span></div><div style="height:8px;background:oklch(0.93 0.006 85);border-radius:999px;overflow:hidden"><div style="{{ p.barStyle }}"></div></div></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ========== ADMIN: TASKS ========== -->
+        <sc-if value="{{ isAdminTasks }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">ADMIN · TASKS</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">任务管理 <span style="font-family:'Space Grotesk';font-size:15px;font-weight:500;color:oklch(0.58 0.01 60)">{{ adminTaskCount }}</span></div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">新增、编辑、删除任务，修改负责人 / 日期 / 优先级 / 状态</div>
+          </div>
+          <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:14px 16px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input value="{{ ntTitle }}" onInput="{{ onNtTitle }}" placeholder="新任务名称…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid oklch(0.88 0.008 85);border-radius:9px;font-size:13.5px;background:white">
+            <select value="{{ ntOwner }}" onChange="{{ onNtOwner }}" style="padding:9px 11px;border:1px solid oklch(0.88 0.008 85);border-radius:9px;font-size:13px;background:white;cursor:pointer"><sc-for list="{{ ownerOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+            <select value="{{ ntDate }}" onChange="{{ onNtDate }}" style="padding:9px 11px;border:1px solid oklch(0.88 0.008 85);border-radius:9px;font-size:13px;background:white;cursor:pointer"><sc-for list="{{ dateOpts }}" as="o" hint-placeholder-count="7"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+            <select value="{{ ntPri }}" onChange="{{ onNtPri }}" style="padding:9px 11px;border:1px solid oklch(0.88 0.008 85);border-radius:9px;font-size:13px;background:white;cursor:pointer"><sc-for list="{{ priOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+            <button onClick="{{ onAddTask }}" style="{{ primaryBtnStyle }}">添加任务</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ adminTaskRows }}" as="r" hint-placeholder-count="10">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:11px;padding:9px 12px;display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+                <input value="{{ r.titleVal }}" onInput="{{ r.onTitle }}" style="flex:1;min-width:190px;padding:7px 9px;border:1px solid transparent;border-radius:7px;font-size:13.5px;font-weight:500;background:oklch(0.98 0.004 85)">
+                <select value="{{ r.ownerVal }}" onChange="{{ r.onOwner }}" style="padding:6px 8px;border:1px solid oklch(0.88 0.008 85);border-radius:7px;font-size:12.5px;background:white;cursor:pointer"><sc-for list="{{ ownerOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <select value="{{ r.dateVal }}" onChange="{{ r.onDate }}" style="padding:6px 8px;border:1px solid oklch(0.88 0.008 85);border-radius:7px;font-size:12.5px;background:white;cursor:pointer"><sc-for list="{{ dateOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <select value="{{ r.priVal }}" onChange="{{ r.onPri }}" style="padding:6px 8px;border:1px solid oklch(0.88 0.008 85);border-radius:7px;font-size:12.5px;background:white;cursor:pointer"><sc-for list="{{ priOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <select value="{{ r.statusVal }}" onChange="{{ r.onStatus }}" style="{{ r.statusSelStyle }}"><sc-for list="{{ statusOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <button onClick="{{ r.onDelete }}" style="padding:6px 10px;border:1px solid oklch(0.88 0.03 30);border-radius:7px;font-size:12px;background:white;color:oklch(0.55 0.14 30);cursor:pointer">删除</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== ADMIN: UTILITIES ========== -->
+        <sc-if value="{{ isAdminUtils }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">ADMIN · UTILITIES</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">服务管理</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">维护新旧房服务状态与备注（账号 / 确认号 / 收据号）</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ adminUtilRows }}" as="r" hint-placeholder-count="8">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:11px;padding:11px 14px;display:flex;gap:11px;align-items:center;flex-wrap:wrap">
+                <span style="{{ r.typeBadge }}">{{ r.typeLabel }}</span>
+                <span style="font-weight:600;font-size:14px;min-width:120px">{{ r.name }}</span>
+                <select value="{{ r.statusVal }}" onChange="{{ r.onStatus }}" style="padding:6px 9px;border:1px solid oklch(0.88 0.008 85);border-radius:7px;font-size:12.5px;background:white;cursor:pointer"><sc-for list="{{ utilStatusOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select>
+                <input value="{{ r.noteVal }}" onInput="{{ r.onNote }}" placeholder="备注 / 确认号 / 收据号…" style="flex:1;min-width:200px;padding:7px 10px;border:1px solid oklch(0.9 0.006 85);border-radius:7px;font-size:12.5px;background:oklch(0.98 0.004 85)">
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== ADMIN: PEOPLE ========== -->
+        <sc-if value="{{ isAdminPeople }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">ADMIN · PEOPLE</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">成员管理</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">家庭成员职责与负载分布</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
+            <sc-for list="{{ adminPeopleCards }}" as="p" hint-placeholder-count="5">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:18px">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px"><div style="{{ p.avatarStyle }}">{{ p.initial }}</div><div><div style="font-weight:700;font-size:15px">{{ p.name }}</div><div style="font-size:11.5px;color:oklch(0.58 0.01 60)">{{ p.role }}</div></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span style="color:oklch(0.55 0.01 60)">完成进度</span><span style="font-family:'Space Grotesk'">{{ p.done }}/{{ p.total }} · {{ p.pct }}%</span></div>
+                <div style="height:8px;background:oklch(0.93 0.006 85);border-radius:999px;overflow:hidden"><div style="{{ p.barStyle }}"></div></div>
+                <div style="display:flex;gap:8px;margin-top:14px"><div style="flex:1;background:oklch(0.98 0.004 85);border-radius:9px;padding:9px;text-align:center"><div style="font-family:'Space Grotesk';font-size:17px;font-weight:700">{{ p.total }}</div><div style="font-size:10.5px;color:oklch(0.58 0.01 60)">总任务</div></div><div style="flex:1;background:oklch(0.98 0.004 85);border-radius:9px;padding:9px;text-align:center"><div style="font-family:'Space Grotesk';font-size:17px;font-weight:700;color:oklch(0.58 0.16 30)">{{ p.p0 }}</div><div style="font-size:10.5px;color:oklch(0.58 0.01 60)">P0 待办</div></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ========== ADMIN: DOCS ========== -->
+        <sc-if value="{{ isAdminDocs }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:18px">
+            <div style="font-family:'Space Grotesk';font-size:11.5px;letter-spacing:.16em;color:oklch(0.5 0.06 165)">ADMIN · DOCS</div>
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:3px">模板管理</div>
+            <div style="font-size:13.5px;color:oklch(0.55 0.01 60);margin-top:4px">编辑话术与模板，家庭端实时同步</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ adminDocRows }}" as="d" hint-placeholder-count="7">
+              <div style="background:white;border:1px solid oklch(0.92 0.006 85);border-radius:14px;padding:16px 18px">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px"><span style="font-weight:600;font-size:14.5px;flex:1">{{ d.title }}</span><span style="font-size:11px;color:oklch(0.5 0.06 165);background:oklch(0.95 0.02 165);padding:2px 8px;border-radius:6px">{{ d.tag }}</span></div>
+                <textarea value="{{ d.body }}" onInput="{{ d.onEdit }}" style="width:100%;min-height:104px;resize:vertical;padding:12px;border:1px solid oklch(0.9 0.006 85);border-radius:10px;font-size:13px;line-height:1.6;background:oklch(0.98 0.004 85)"></textarea>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+  </div>
+  <sc-if value="{{ showBottom }}" hint-placeholder-val="{{ true }}">
+    <nav style="position:fixed;left:0;right:0;bottom:0;height:60px;display:flex;background:oklch(0.99 0.004 85);border-top:1px solid oklch(0.9 0.006 85);z-index:20;box-shadow:0 -2px 12px rgba(0,0,0,.05)">
+      <sc-for list="{{ bottomNav }}" as="b" hint-placeholder-count="6"><button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.label }}</button></sc-for>
+    </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:402,&quot;height&quot;:860},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#3E7A62&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#3E7A62&quot;,&quot;#2F6DB5&quot;,&quot;#B5642F&quot;,&quot;#5B54B0&quot;]},&quot;showEnLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;highlightP0&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  LSKEY = 'moveguide_v1';
+  TODAY = '07-05';
+  DATES = ['07-05','07-06','07-07','07-08','07-09','07-10','07-11'];
+  WEEK = {'07-05':'周日','07-06':'周一','07-07':'周二','07-08':'周三','07-09':'周四','07-10':'周五','07-11':'周六'};
+  STAGE = {'07-05':'签约准备','07-06':'新房交接','07-07':'预约减量','07-08':'最后打包','07-09':'搬家日','07-10':'关闭旧服务','07-11':'补缺收尾'};
+  GOAL = {'07-05':'签合同 · 确认规则 · 启动打包','07-06':'新房交接 · 量尺寸 · 开通水电气网','07-07':'定搬家公司 · 旧房减量','07-08':'最后打包 · 旧房清理','07-09':'搬家 · 下午退房交钥匙','07-10':'关闭旧服务 · 退宽带设备','07-11':'充电师傅 · 新房补缺'};
+  CATS = ['合同与交接','新房服务开通','搬家公司','家具尺寸与淘汰','打包整理','旧房退房','宽带与设备','地址修改','邻居感谢卡','搬家后收尾'];
+  PEOPLE = [
+    {id:'dad', name:'爸爸', role:'总控 · 外部沟通', hue:245},
+    {id:'mom', name:'太太', role:'打包 · 生活恢复', hue:8},
+    {id:'tommy', name:'Tommy', role:'房间 · 记录', hue:65},
+    {id:'kids', name:'弟弟', role:'物品 · 轻物', hue:160},
+    {id:'family', name:'全家', role:'共同任务', hue:300},
+  ];
+
+  state = {
+    isMobile: (typeof window!=='undefined' && window.innerWidth<760),
+    view:'front', fp:'dashboard', ap:'overview',
+    person:'dad',
+    tasks: this.buildTasks(),
+    utils: this.buildUtils(),
+    docs: this.buildDocs(),
+    fOwner:'all', fDate:'all', fCat:'all',
+    copiedId:null,
+    ntTitle:'', ntOwner:'dad', ntDate:'07-06', ntPri:'P1',
+  };
+
+  ac(){ return this.props.accent || '#3E7A62'; }
+
+  componentDidMount(){ this._onR=()=>{ const m=window.innerWidth<760; if(m!==this.state.isMobile) this.setState({isMobile:m}); }; window.addEventListener('resize',this._onR); this._onR(); }
+  componentWillUnmount(){ if(this._onR) window.removeEventListener('resize',this._onR); }
+  bottomItem(active){ const AC=this.ac(); return 'flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 2px;border:none;background:transparent;cursor:pointer;font-size:11px;line-height:1.2;border-top:3px solid '+(active?AC:'transparent')+';'+(active?`color:${AC};font-weight:600`:'color:oklch(0.52 0.012 60)'); }
+
+  loadSaved(){ try { return JSON.parse(localStorage.getItem(this.LSKEY)) || {}; } catch(e){ return {}; } }
+  saveStatuses(tasks){ const m={}; tasks.forEach(t=>{ m[t.id]=t.status; }); try { localStorage.setItem(this.LSKEY, JSON.stringify(m)); } catch(e){} }
+
+  buildTasks(){
+    const R = [
+      ['签署租房合同','dad','07-05','合同与交接','P0',true,'done','确认租金、押金、租期、维修责任'],
+      ['确认入住日期','dad','07-05','合同与交接','P0',false,'done',''],
+      ['确认钥匙 / 车库遥控 / 邮箱钥匙','dad','07-05','合同与交接','P1',false,'not_started',''],
+      ['确认 HOA / 门禁 / 停车规则','dad','07-05','合同与交接','P1',false,'not_started',''],
+      ['确认水电气垃圾网络由谁开通','dad','07-05','新房服务开通','P1',false,'in_progress','租客 / 房东 / HOA'],
+      ['明确 7/6 交接流程','dad','07-05','合同与交接','P1',false,'not_started',''],
+      ['开始联系搬家公司','dad','07-05','搬家公司','P1',false,'in_progress','至少询价 3 家'],
+      ['家庭初步打包','mom','07-05','打包整理','P2',false,'in_progress','先打不常用物品'],
+      ['Tommy 开始写邻居感谢卡','tommy','07-05','邻居感谢卡','P2',false,'not_started','可用英文模板'],
+      ['新房交接','dad','07-06','合同与交接','P0',true,'not_started',''],
+      ['拍新房视频和照片','tommy','07-06','合同与交接','P0',false,'not_started','逐间录像存档'],
+      ['记录所有已有损坏','dad','07-06','合同与交接','P1',false,'not_started','避免退押金纠纷'],
+      ['量客厅尺寸','tommy','07-06','家具尺寸与淘汰','P1',false,'not_started',''],
+      ['量卧室尺寸','tommy','07-06','家具尺寸与淘汰','P1',false,'not_started',''],
+      ['量楼梯 / 走廊 / 门宽','tommy','07-06','家具尺寸与淘汰','P1',false,'not_started','确认大件能否进门'],
+      ['统计家具数量','mom','07-06','家具尺寸与淘汰','P1',false,'not_started',''],
+      ['确定哪些家具搬','mom','07-06','家具尺寸与淘汰','P1',false,'not_started','搬 / 卖 / 送 / 丢'],
+      ['开通 SCE 电力','dad','07-06','新房服务开通','P0',true,'not_started','开始日设 7/8 或 7/9'],
+      ['开通 IRWD 水 / 污水','dad','07-06','新房服务开通','P0',true,'not_started',''],
+      ['开通 SoCalGas 天然气','dad','07-06','新房服务开通','P0',true,'not_started','需到场点火'],
+      ['确认 WM 垃圾服务','dad','07-06','新房服务开通','P1',false,'not_started','是否已有桶 / 收垃圾日'],
+      ['查询新房网络','dad','07-06','新房服务开通','P0',false,'not_started','Fiber / Cox / AT&T / Spectrum'],
+      ['确认 7/11 充电师傅','dad','07-06','新房服务开通','P2',false,'in_progress',''],
+      ['确认搬家公司','dad','07-07','搬家公司','P0',true,'not_started',''],
+      ['确认搬家公司计费方式','dad','07-07','搬家公司','P1',false,'not_started','时薪 / 最低时长 / 各项费用'],
+      ['确认是否带毯子 / 推车 / 绑带','dad','07-07','搬家公司','P1',false,'not_started',''],
+      ['处理旧家具：卖 / 送 / 丢','mom','07-07','家具尺寸与淘汰','P2',false,'not_started',''],
+      ['开始改重要账单地址','dad','07-07','地址修改','P2',false,'not_started',''],
+      ['旧宽带决定转移或取消','dad','07-07','宽带与设备','P1',false,'not_started',''],
+      ['厨房打包 70%','mom','07-07','打包整理','P1',false,'not_started',''],
+      ['孩子房间打包 80%','kids','07-07','打包整理','P1',false,'not_started',''],
+      ['再次确认搬家公司时间','dad','07-08','搬家公司','P0',false,'not_started',''],
+      ['再次确认水电气网','dad','07-08','新房服务开通','P0',false,'not_started',''],
+      ['再次确认退房流程','dad','07-08','旧房退房','P1',false,'not_started',''],
+      ['冰箱清空','mom','07-08','打包整理','P1',false,'not_started','提前解冻'],
+      ['第一晚箱准备完成','mom','07-08','打包整理','P1',false,'not_started','洗漱 / 床品 / 充电器 / 药'],
+      ['所有箱子标记房间','tommy','07-08','打包整理','P1',false,'not_started',''],
+      ['Tommy 完成邻居感谢卡','tommy','07-08','邻居感谢卡','P2',false,'not_started',''],
+      ['旧房初步清洁','mom','07-08','旧房退房','P2',false,'not_started',''],
+      ['搬家前旧房拍照','dad','07-09','旧房退房','P0',false,'not_started',''],
+      ['重要证件和贵重物品自己带','mom','07-09','打包整理','P0',false,'not_started','护照 / 现金 / 首饰'],
+      ['搬家公司搬大件','family','07-09','搬家公司','P0',true,'not_started',''],
+      ['新房床先装好','dad','07-09','搬家后收尾','P1',false,'not_started',''],
+      ['新房 Wi-Fi 优先安装','dad','07-09','新房服务开通','P1',false,'not_started',''],
+      ['第一晚箱打开','mom','07-09','搬家后收尾','P1',false,'not_started',''],
+      ['旧房最后检查','mom','07-09','旧房退房','P1',false,'not_started','抽屉 / 床底 / 车库'],
+      ['旧房退房视频','dad','07-09','旧房退房','P0',false,'not_started',''],
+      ['交钥匙 / 遥控 / 邮箱钥匙','dad','07-09','旧房退房','P0',true,'not_started',''],
+      ['与中介确认退房完成','dad','07-09','旧房退房','P0',false,'not_started',''],
+      ['关闭旧房电水气','dad','07-10','宽带与设备','P1',false,'not_started','不早于退房清洁完成'],
+      ['取消或转移旧宽带','dad','07-10','宽带与设备','P1',false,'not_started',''],
+      ['退旧宽带设备','dad','07-10','宽带与设备','P0',false,'not_started','保留收据 / 追踪号'],
+      ['保存退设备收据','dad','07-10','宽带与设备','P0',false,'not_started',''],
+      ['检查新房服务账单','dad','07-10','新房服务开通','P2',false,'not_started',''],
+      ['新房厨房整理','mom','07-10','搬家后收尾','P2',false,'not_started',''],
+      ['新房卧室整理','mom','07-10','搬家后收尾','P2',false,'not_started',''],
+      ['纸箱集中处理','kids','07-10','搬家后收尾','P2',false,'not_started',''],
+      ['充电师傅上门','dad','07-11','新房服务开通','P2',false,'not_started',''],
+      ['检查充电设备','dad','07-11','新房服务开通','P2',false,'not_started',''],
+      ['统计新房缺少家具','mom','07-11','搬家后收尾','P2',false,'not_started',''],
+      ['处理剩余旧家具','dad','07-11','家具尺寸与淘汰','P2',false,'not_started',''],
+      ['家庭复盘未完成任务','family','07-11','搬家后收尾','P2',false,'not_started',''],
+    ];
+    const saved = this.loadSaved();
+    return R.map((a,i)=>{ const id='k'+i; return { id, title:a[0], owner:a[1], date:a[2], category:a[3], priority:a[4], blocking:a[5], status: saved[id]||a[6], description:a[7]||'' }; });
+  }
+
+  buildUtils(){
+    return [
+      {id:'sce', type:'new', name:'SCE 电力', provider:'Southern California Edison', address:'25 New Dawn', start:'7/9', status:'not_started', note:'服务开始日设 7/8 或 7/9'},
+      {id:'irwd', type:'new', name:'IRWD 水 / 污水', provider:'Irvine Ranch Water District', address:'25 New Dawn', start:'7/9', status:'not_started', note:'与电同日开通'},
+      {id:'gas', type:'new', name:'SoCalGas 天然气', provider:'Southern California Gas', address:'25 New Dawn', start:'7/9', status:'not_started', note:'需到场点火确认'},
+      {id:'wm', type:'new', name:'垃圾回收', provider:'Waste Management of OC', address:'25 New Dawn', start:'待确认', status:'not_started', note:'确认是否已有桶 / 收垃圾日 / 是否 HOA 负责'},
+      {id:'net', type:'new', name:'网络宽带', provider:'Fiber / Cox / AT&T / Spectrum', address:'25 New Dawn', start:'待预约', status:'not_started', note:'先查地址可用运营商，再约安装'},
+      {id:'ev', type:'new', name:'充电设备', provider:'电工师傅', address:'25 New Dawn', start:'7/11', status:'in_progress', note:'转移充电卡头 / 检查充电位'},
+      {id:'oldnet', type:'old', name:'旧宽带', provider:'现运营商', address:'17 Dava', start:'退设备', status:'not_started', note:'保留退设备收据 / 追踪号 / 取消确认号'},
+      {id:'oldutil', type:'old', name:'旧房水电气', provider:'SCE / IRWD / SoCalGas', address:'17 Dava', start:'7/9晚–7/10', status:'not_started', note:'不要早于退房清洁完成'},
+    ];
+  }
+
+  buildDocs(){
+    return [
+      {id:'d1', title:'搬家公司询价话术', tag:'英文', body:'Hi, we are moving from 17 Dava to 25 New Dawn in Irvine on July 9. It is a local move. Could you please let me know your hourly rate, minimum hours, truck fee, travel fee, stairs fee, heavy item fee, and insurance coverage?'},
+      {id:'d2', title:'中介确认话术', tag:'英文', body:'Hi, could you please confirm the key handover time and process for 25 New Dawn on July 6? We would also like to confirm the HOA rules, parking, and access codes.'},
+      {id:'d3', title:'退房确认话术', tag:'英文', body:'Hi, we have completed the move-out cleaning at 17 Dava and returned the keys, garage remote, and mailbox key. Could you please confirm the move-out is complete and share the deposit return process?'},
+      {id:'d4', title:'Tommy 邻居感谢卡', tag:'英文', body:'Dear neighbor,\n\nThank you for being such a kind neighbor during our time here. We are moving to a new home, but we really appreciate all the friendliness and good memories from this neighborhood.\n\nWishing you and your family all the best.\n\nTommy and family'},
+      {id:'d5', title:'新房交接拍照清单', tag:'清单', body:'· 每个房间整体视频\n· 墙面 / 地板已有划痕\n· 厨房台面与电器\n· 卫生间水渍霉点\n· 门窗纱窗\n· 车库与储物\n· 水电气表读数'},
+      {id:'d6', title:'旧房退房拍照清单', tag:'清单', body:'· 清空后每个房间视频\n· 地毯 / 地板清洁后状态\n· 厨房与冰箱内部\n· 卫生间清洁状态\n· 墙面无遗留钉孔\n· 钥匙 / 遥控 / 邮箱钥匙合影\n· 水电气表最终读数'},
+      {id:'d7', title:'地址修改清单', tag:'清单', body:'· 银行 / 信用卡\n· 驾照 DMV\n· 报税与工资\n· 保险（车 / 医疗 / 房屋）\n· 学校与医生\n· 亚马逊 / 常用网购\n· USPS 邮件转寄'},
+    ];
+  }
+
+  // ---- helpers ----
+  personBy(id){ return this.PEOPLE.find(p=>p.id===id) || this.PEOPLE[0]; }
+  md(d){ const [m,dd]=d.split('-'); return (+m)+'/'+(+dd); }
+
+  ownerBadge(id){ const p=this.personBy(id); return `font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:oklch(0.95 0.03 ${p.hue});color:oklch(0.45 0.13 ${p.hue})`; }
+  priMeta(p){ const m={P0:{h:25,c:0.16},P1:{h:70,c:0.13},P2:{h:80,c:0.01}}[p]||{h:80,c:0.01}; return `font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:oklch(0.95 ${m.c*0.35} ${m.h});color:oklch(0.48 ${m.c} ${m.h})`; }
+  statusMeta(s){ const m={not_started:{l:'未开始',h:80,c:0.01},in_progress:{l:'进行中',h:245,c:0.11},done:{l:'已完成',h:150,c:0.12},issue:{l:'有问题',h:25,c:0.16}}[s]||{l:s,h:80,c:0.01}; return {label:m.l, style:`font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:oklch(0.95 ${m.c*0.35} ${m.h});color:oklch(0.46 ${m.c} ${m.h})`}; }
+  utilMeta(s){ const m={not_started:{l:'未开通',h:80,c:0.01},in_progress:{l:'申请中',h:245,c:0.11},done:{l:'已确认',h:150,c:0.12},issue:{l:'有问题',h:25,c:0.16}}[s]||{l:s,h:80,c:0.01}; return {label:m.l, h:m.h, c:m.c}; }
+
+  produceView(t){
+    const p=this.personBy(t.owner);
+    const done=t.status==='done';
+    const p0=t.priority==='P0';
+    const hl=this.props.highlightP0!==false;
+    const sm=this.statusMeta(t.status);
+    return {
+      id:t.id, title:t.title, desc:t.description||'', category:t.category,
+      checked:done, onToggle:()=>this.toggleTask(t.id),
+      checkStyle:'width:22px;height:22px;flex:none;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:1px;transition:.15s;'+(done?'border:2px solid oklch(0.6 0.13 150);background:oklch(0.6 0.13 150)':'border:2px solid oklch(0.82 0.01 80);background:white'),
+      titleStyle:'font-weight:500;font-size:14.5px;line-height:1.4;'+(done?'text-decoration:line-through;color:oklch(0.68 0.01 60)':'color:oklch(0.26 0.012 60)'),
+      plainTitleStyle:(done?'text-decoration:line-through;color:oklch(0.68 0.06 40)':'color:oklch(0.35 0.05 40)'),
+      cardStyle:'display:flex;gap:12px;padding:14px 15px;background:white;border:1px solid oklch(0.92 0.006 85);border-radius:12px;align-items:flex-start;animation:fadeup .3s ease;'+(p0&&!done&&hl?'box-shadow:inset 3px 0 0 oklch(0.58 0.16 25)':''),
+      ownerName:p.name, ownerBadge:this.ownerBadge(t.owner),
+      priority:t.priority, priBadge:this.priMeta(t.priority),
+      statusLabel:sm.label, statusBadge:sm.style,
+      blocking:!!t.blocking, dateShort:this.md(t.date),
+    };
+  }
+
+  // ---- mutations ----
+  toggleTask(id){ this.setState(s=>{ const tasks=s.tasks.map(t=>t.id===id?{...t,status:t.status==='done'?'not_started':'done'}:t); this.saveStatuses(tasks); return {tasks}; }); }
+  setField(id,field,val){ this.setState(s=>{ const tasks=s.tasks.map(t=>t.id===id?{...t,[field]:val}:t); if(field==='status') this.saveStatuses(tasks); return {tasks}; }); }
+  deleteTask(id){ this.setState(s=>({tasks:s.tasks.filter(t=>t.id!==id)})); }
+  addTask(){ const s=this.state; const title=(s.ntTitle||'').trim(); if(!title) return; const nt={id:'k'+Date.now(), title, owner:s.ntOwner, date:s.ntDate, category:this.CATS[0], priority:s.ntPri, blocking:s.ntPri==='P0', status:'not_started', description:''}; this.setState(st=>({tasks:[...st.tasks,nt], ntTitle:''})); }
+  cycleUtil(id){ const order=['not_started','in_progress','done']; this.setState(s=>({utils:s.utils.map(u=>u.id===id?{...u,status:order[(order.indexOf(u.status)+1)%order.length]}:u)})); }
+  setUtil(id,field,val){ this.setState(s=>({utils:s.utils.map(u=>u.id===id?{...u,[field]:val}:u)})); }
+  updateDoc(id,body){ this.setState(s=>({docs:s.docs.map(d=>d.id===id?{...d,body}:d)})); }
+  copyDoc(id,text){ try { if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text); } else { const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); } } catch(e){} this.setState({copiedId:id}); setTimeout(()=>{ if(this.state.copiedId===id) this.setState({copiedId:null}); },1600); }
+
+  navBtn(active){ const AC=this.ac(); return 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 12px;border-radius:10px;border:none;cursor:pointer;text-align:left;width:100%;font-size:14px;transition:background .15s;'+(active?`background:${AC};color:#fff`:'background:transparent;color:oklch(0.42 0.012 60)'); }
+  chip(active){ const AC=this.ac(); return 'padding:7px 14px;border-radius:999px;font-size:13px;cursor:pointer;font-weight:500;border:1px solid '+(active?`${AC};background:${AC};color:#fff`:'oklch(0.88 0.008 85);background:white;color:oklch(0.4 0.012 60)'); }
+  swBtn(active){ const AC=this.ac(); return 'padding:7px 15px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;'+(active?`background:${AC};color:#fff`:'background:transparent;color:oklch(0.45 0.01 60)'); }
+
+  renderVals(){
+    const s=this.state, AC=this.ac();
+    const tasks=s.tasks;
+    const isFront=s.view==='front';
+    const total=tasks.length;
+    const done=tasks.filter(t=>t.status==='done').length;
+    const inProg=tasks.filter(t=>t.status==='in_progress').length;
+    const pct=total?Math.round(done/total*100):0;
+    const p0Remain=tasks.filter(t=>t.priority==='P0'&&t.status!=='done').length;
+    const dashPctBar=`height:100%;width:${pct}%;background:oklch(0.72 0.13 150);border-radius:999px;transition:width .4s`;
+    const enOn=this.props.showEnLabels!==false;
+
+    // nav
+    const frontDefs=[['dashboard','概览','DASHBOARD'],['timeline','时间线','TIMELINE'],['people','家庭分工','PEOPLE'],['checklist','任务清单','CHECKLIST'],['utilities','服务开通','UTILITIES'],['docs','模板文件','DOCS']];
+    const adminDefs=[['overview','数据总览','OVERVIEW'],['tasks','任务管理','TASKS'],['utils','服务管理','UTILITIES'],['people','成员管理','PEOPLE'],['docs','模板管理','DOCS']];
+    const nav = isFront
+      ? frontDefs.map(d=>({label:d[1], en:enOn?d[2]:'', style:this.navBtn(s.fp===d[0]), onClick:()=>this.setState({fp:d[0]})}))
+      : adminDefs.map(d=>({label:d[1], en:enOn?d[2]:'', style:this.navBtn(s.ap===d[0]), onClick:()=>this.setState({ap:d[0]})}));
+    const isMobile=!!s.isMobile, isDesktop=!isMobile;
+    const mainStyle=isMobile?'flex:1;overflow:auto;padding:16px 14px 82px':'flex:1;overflow:auto;padding:26px 30px';
+    const showProgress=isFront&&isDesktop;
+    const bnDefs=isFront?frontDefs:adminDefs, bnCurr=isFront?s.fp:s.ap;
+    const bottomNav=bnDefs.map(d=>({label:d[1], onClick:()=> isFront?this.setState({fp:d[0]}):this.setState({ap:d[0]}), style:this.bottomItem(bnCurr===d[0])}));
+
+    // today groups (dashboard)
+    const todayTasks=tasks.filter(t=>t.date===this.TODAY);
+    const todayGroups=this.PEOPLE.map(p=>{ const list=todayTasks.filter(t=>t.owner===p.id); if(!list.length) return null; return {name:p.name, dotStyle:`width:9px;height:9px;border-radius:50%;background:oklch(0.6 0.14 ${p.hue})`, doneCount:list.filter(t=>t.status==='done').length, total:list.length, tasks:list.map(t=>this.produceView(t))}; }).filter(Boolean);
+    const urgentList=tasks.filter(t=>t.priority==='P0'&&t.status!=='done').slice(0,6).map(t=>this.produceView(t));
+    const quickLinks=[
+      {label:'查看时间表', onClick:()=>this.setState({fp:'timeline'})},
+      {label:'我的任务', onClick:()=>this.setState({fp:'people'})},
+      {label:'服务开通', onClick:()=>this.setState({fp:'utilities'})},
+      {label:'退房清单', onClick:()=>this.setState({fp:'checklist', fCat:'旧房退房'})},
+      {label:'邻居感谢卡', onClick:()=>this.setState({fp:'docs'})},
+    ];
+    const todayDateLabel=this.md(this.TODAY)+' '+this.WEEK[this.TODAY];
+
+    // timeline
+    const days=this.DATES.map(dt=>{ const list=tasks.filter(t=>t.date===dt); const dc=list.filter(t=>t.status==='done').length; const dpct=list.length?Math.round(dc/list.length*100):0; const isToday=dt===this.TODAY; return {md:this.md(dt), weekday:this.WEEK[dt], stage:this.STAGE[dt], goal:this.GOAL[dt], isToday, doneCount:dc, total:list.length, barStyle:`height:100%;width:${dpct}%;background:${AC};border-radius:999px`, cardStyle:'background:white;border-radius:16px;padding:20px 22px;border:1px solid '+(isToday?'oklch(0.7 0.1 165)':'oklch(0.92 0.006 85)')+(isToday?';box-shadow:0 0 0 3px oklch(0.92 0.06 165)':''), tasks:list.map(t=>this.produceView(t))}; });
+
+    // people
+    const personTabs=this.PEOPLE.map(p=>{ const act=s.person===p.id; return {name:p.name, onClick:()=>this.setState({person:p.id}), dotStyle:`width:8px;height:8px;border-radius:50%;margin-right:7px;display:inline-block;background:oklch(0.6 0.14 ${p.hue})`, style:'display:inline-flex;align-items:center;padding:8px 15px;border-radius:999px;font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid '+(act?`oklch(0.5 0.1 ${p.hue});background:oklch(0.96 0.03 ${p.hue});color:oklch(0.4 0.14 ${p.hue})`:'oklch(0.9 0.006 85);background:white;color:oklch(0.42 0.012 60)')}; });
+    const selP=this.personBy(s.person);
+    const myTasksRaw=tasks.filter(t=>t.owner===s.person);
+    const myDone=myTasksRaw.filter(t=>t.status==='done').length;
+    const myUndoneRaw=myTasksRaw.filter(t=>t.status!=='done');
+    const myTodayRaw=myTasksRaw.filter(t=>t.date===this.TODAY);
+    const myDoneRaw=myTasksRaw.filter(t=>t.status==='done');
+    const myPct=myTasksRaw.length?Math.round(myDone/myTasksRaw.length*100):0;
+
+    // checklist filters
+    const ownerChipDefs=[['all','全部'],['dad','爸爸'],['mom','太太'],['tommy','Tommy'],['kids','弟弟'],['family','全家']];
+    const ownerChips=ownerChipDefs.map(d=>({label:d[1], style:this.chip(s.fOwner===d[0]), onClick:()=>this.setState({fOwner:d[0]})}));
+    const dateChipDefs=[['all','全部'],['today','今天'],['tomorrow','明天'],['before','搬家前'],['moveday','搬家当天'],['after','搬家后']];
+    const dateChips=dateChipDefs.map(d=>({label:d[1], style:this.chip(s.fDate===d[0]), onClick:()=>this.setState({fDate:d[0]})}));
+    const catOpts=[{v:'all',l:'全部分类'}].concat(this.CATS.map(c=>({v:c,l:c})));
+    const dateMatch=(t)=>{ const d=t.date; if(s.fDate==='all')return true; if(s.fDate==='today')return d===this.TODAY; if(s.fDate==='tomorrow')return d==='07-06'; if(s.fDate==='before')return d<'07-09'; if(s.fDate==='moveday')return d==='07-09'; if(s.fDate==='after')return d>'07-09'; return true; };
+    const filtered=tasks.filter(t=>(s.fOwner==='all'||t.owner===s.fOwner)&&dateMatch(t)&&(s.fCat==='all'||t.category===s.fCat));
+
+    // utilities
+    const mkUtil=(u)=>{ const m=this.utilMeta(u.status); return {name:u.name, provider:u.provider, address:u.address, start:u.start, note:u.note, statusLabel:m.label, statusStyle:`border:none;cursor:pointer;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:oklch(0.95 ${m.c*0.35} ${m.h});color:oklch(0.44 ${m.c} ${m.h})`, onCycle:()=>this.cycleUtil(u.id)}; };
+    const newUtils=s.utils.filter(u=>u.type==='new').map(mkUtil);
+    const oldUtils=s.utils.filter(u=>u.type==='old').map(mkUtil);
+
+    // docs
+    const docCards=s.docs.map(d=>{ const copied=s.copiedId===d.id; return {title:d.title, tag:d.tag, body:d.body, copyLabel:copied?'已复制':'复制', copyStyle:'border:1px solid '+(copied?'oklch(0.7 0.12 150);background:oklch(0.95 0.05 150);color:oklch(0.45 0.13 150)':'oklch(0.88 0.008 85);background:white;color:oklch(0.42 0.012 60)')+';font-size:12px;font-weight:500;padding:5px 12px;border-radius:8px;cursor:pointer', onCopy:()=>this.copyDoc(d.id,d.body)}; });
+
+    // admin overview
+    const statCards=[
+      {label:'总任务', value:total, sub:'全部任务数', valueStyle:"font-family:'Space Grotesk';font-size:30px;font-weight:700;margin-top:6px;color:oklch(0.3 0.012 60)"},
+      {label:'已完成', value:done, sub:pct+'% 完成', valueStyle:"font-family:'Space Grotesk';font-size:30px;font-weight:700;margin-top:6px;color:oklch(0.58 0.13 150)"},
+      {label:'进行中', value:inProg, sub:'正在处理', valueStyle:"font-family:'Space Grotesk';font-size:30px;font-weight:700;margin-top:6px;color:oklch(0.55 0.11 245)"},
+      {label:'P0 未完成', value:p0Remain, sub:'高优阻塞项', valueStyle:"font-family:'Space Grotesk';font-size:30px;font-weight:700;margin-top:6px;color:oklch(0.55 0.17 30)"},
+    ];
+    const perPerson=this.PEOPLE.map(p=>{ const list=tasks.filter(t=>t.owner===p.id); const dn=list.filter(t=>t.status==='done').length; const pc=list.length?Math.round(dn/list.length*100):0; return {name:p.name, done:dn, total:list.length, pct:pc, dotStyle:`width:8px;height:8px;border-radius:50%;background:oklch(0.6 0.14 ${p.hue})`, barStyle:`height:100%;width:${pc}%;background:oklch(0.6 0.13 ${p.hue});border-radius:999px`}; });
+    const perDay=this.DATES.map(dt=>{ const list=tasks.filter(t=>t.date===dt); const dn=list.filter(t=>t.status==='done').length; const pc=list.length?Math.round(dn/list.length*100):0; return {name:this.md(dt)+' '+this.WEEK[dt], done:dn, total:list.length, pct:pc, barStyle:`height:100%;width:${pc}%;background:${AC};border-radius:999px`}; });
+
+    // admin tasks
+    const ownerOpts=this.PEOPLE.map(p=>({v:p.id,l:p.name}));
+    const priOpts=[{v:'P0',l:'P0'},{v:'P1',l:'P1'},{v:'P2',l:'P2'}];
+    const statusOpts=[{v:'not_started',l:'未开始'},{v:'in_progress',l:'进行中'},{v:'done',l:'已完成'},{v:'issue',l:'有问题'}];
+    const dateOpts=this.DATES.map(d=>({v:d,l:this.md(d)+' '+this.WEEK[d]}));
+    const utilStatusOpts=[{v:'not_started',l:'未开通'},{v:'in_progress',l:'申请中'},{v:'done',l:'已确认'},{v:'issue',l:'有问题'}];
+    const adminTaskRows=tasks.map(t=>{ const sm=this.statusMeta(t.status); return {titleVal:t.title, ownerVal:t.owner, dateVal:t.date, priVal:t.priority, statusVal:t.status, statusSelStyle:`padding:6px 8px;border-radius:7px;font-size:12.5px;cursor:pointer;border:1px solid oklch(0.88 0.008 85);background:oklch(0.96 ${sm?0.02:0} 150);color:oklch(0.4 0.05 ${t.status==='done'?150:t.status==='in_progress'?245:t.status==='issue'?30:60})`, onTitle:(e)=>this.setField(t.id,'title',e.target.value), onOwner:(e)=>this.setField(t.id,'owner',e.target.value), onDate:(e)=>this.setField(t.id,'date',e.target.value), onPri:(e)=>this.setField(t.id,'priority',e.target.value), onStatus:(e)=>this.setField(t.id,'status',e.target.value), onDelete:()=>this.deleteTask(t.id)}; });
+
+    // admin utils
+    const adminUtilRows=s.utils.map(u=>({name:u.name, typeLabel:u.type==='new'?'新房':'旧房', typeBadge:'font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;'+(u.type==='new'?'background:oklch(0.95 0.03 165);color:oklch(0.45 0.1 165)':'background:oklch(0.94 0.005 60);color:oklch(0.5 0.01 60)'), statusVal:u.status, noteVal:u.note, onStatus:(e)=>this.setUtil(u.id,'status',e.target.value), onNote:(e)=>this.setUtil(u.id,'note',e.target.value)}));
+
+    // admin people
+    const adminPeopleCards=this.PEOPLE.map(p=>{ const list=tasks.filter(t=>t.owner===p.id); const dn=list.filter(t=>t.status==='done').length; const pc=list.length?Math.round(dn/list.length*100):0; const p0=list.filter(t=>t.priority==='P0'&&t.status!=='done').length; return {name:p.name, role:p.role, initial:p.name.charAt(0), done:dn, total:list.length, pct:pc, p0, avatarStyle:`width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;background:oklch(0.58 0.13 ${p.hue})`, barStyle:`height:100%;width:${pc}%;background:oklch(0.6 0.13 ${p.hue});border-radius:999px`}; });
+
+    // admin docs
+    const adminDocRows=s.docs.map(d=>({title:d.title, tag:d.tag, body:d.body, onEdit:(e)=>this.updateDoc(d.id,e.target.value)}));
+
+    return {
+      isFront, isDesktop, mainStyle, showProgress, showBottom:isMobile, bottomNav,
+      logoStyle:`width:30px;height:30px;border-radius:9px;background:${AC};display:flex;align-items:center;justify-content:center;color:white;font-family:'Space Grotesk';font-weight:700;font-size:15px`,
+      goFront:()=>this.setState({view:'front'}), goAdmin:()=>this.setState({view:'admin'}),
+      frontSwitchStyle:this.swBtn(isFront), adminSwitchStyle:this.swBtn(!isFront),
+      nav, navGroupLabel:isFront?'家庭端':'管理后台',
+      // page flags
+      isDashboard:isFront&&s.fp==='dashboard', isTimeline:isFront&&s.fp==='timeline', isPeople:isFront&&s.fp==='people', isChecklist:isFront&&s.fp==='checklist', isUtilities:isFront&&s.fp==='utilities', isDocs:isFront&&s.fp==='docs',
+      isOverview:!isFront&&s.ap==='overview', isAdminTasks:!isFront&&s.ap==='tasks', isAdminUtils:!isFront&&s.ap==='utils', isAdminPeople:!isFront&&s.ap==='people', isAdminDocs:!isFront&&s.ap==='docs',
+      // dashboard
+      dashDone:done, dashTotal:total, dashPct:pct, dashPctBar, daysLeft:4, stageLabel:this.STAGE[this.TODAY], p0Remain, inProg, todayGroups, urgentList, quickLinks, todayDateLabel,
+      // timeline
+      days, todayBadge:`font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:${AC};color:#fff`,
+      // people
+      personTabs, selName:selP.name, selRole:selP.role, selInitial:selP.name.charAt(0), selAvatar:`width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#fff;background:oklch(0.58 0.13 ${selP.hue})`,
+      myTotal:myTasksRaw.length, myDone, myUndone:myUndoneRaw.length, myUrgent:myTasksRaw.filter(t=>t.priority==='P0'&&t.status!=='done').length, myPct, myPctBar:`height:100%;width:${myPct}%;background:oklch(0.6 0.13 ${selP.hue});border-radius:999px`,
+      hasToday:myTodayRaw.length>0, myTodayViews:myTodayRaw.map(t=>this.produceView(t)),
+      myUndoneViews:myUndoneRaw.map(t=>this.produceView(t)),
+      hasDone:myDoneRaw.length>0, myDoneViews:myDoneRaw.map(t=>this.produceView(t)),
+      // checklist
+      ownerChips, dateChips, catOpts, fCatVal:s.fCat, onCat:(e)=>this.setState({fCat:e.target.value}), filteredViews:filtered.map(t=>this.produceView(t)), shownCount:filtered.length, shownDone:filtered.filter(t=>t.status==='done').length,
+      // utilities
+      newUtils, oldUtils,
+      // docs
+      docCards,
+      // admin
+      statCards, perPerson, perDay,
+      adminTaskCount:total, adminTaskRows, ownerOpts, priOpts, statusOpts, dateOpts, utilStatusOpts,
+      ntTitle:s.ntTitle, ntOwner:s.ntOwner, ntDate:s.ntDate, ntPri:s.ntPri,
+      onNtTitle:(e)=>this.setState({ntTitle:e.target.value}), onNtOwner:(e)=>this.setState({ntOwner:e.target.value}), onNtDate:(e)=>this.setState({ntDate:e.target.value}), onNtPri:(e)=>this.setState({ntPri:e.target.value}), onAddTask:()=>this.addTask(),
+      primaryBtnStyle:`padding:9px 16px;border-radius:9px;border:none;background:${AC};color:#fff;font-size:13px;font-weight:600;cursor:pointer`,
+      adminUtilRows, adminPeopleCards, adminDocRows,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+/* ============================================
+   Move Guide · global base styles
+   Matches the design draft (oklch palette,
+   Noto Sans SC + Space Grotesk)
+============================================ */
+
+* { box-sizing: border-box; }
+
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+
+body {
+  font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  background: oklch(0.985 0.006 85);
+  color: oklch(0.28 0.012 60);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; color: inherit; outline: none; }
+select:focus, input:focus, textarea:focus { border-color: oklch(0.62 0.06 165) !important; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: oklch(0.86 0.01 80);
+  border-radius: 8px;
+  border: 2px solid oklch(0.985 0.006 85);
+}
+
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
