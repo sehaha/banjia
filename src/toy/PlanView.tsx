@@ -1,11 +1,51 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ACCENT } from '../lib/ui';
 import {
   type MoveConfig, computeTasks, daysUntilMove, estBoxes, progressKey,
   PHASE_ORDER, PHASE_EMOJI, TEMPLATE_LABEL, type Phase,
 } from './toyData';
 
+const DEFAULT_WISH = '乔迁之喜，万事顺遂！愿你在新家开启一段温暖又顺利的新生活 🏡✨';
+
 function loadDone(key: string): Set<string> {
   try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch { return new Set(); }
+}
+
+const CONFETTI = ['🎉', '🎊', '✨', '🎈', '🎁', '💛', '🌸', '⭐'];
+
+function Celebration({ name, wish, by, onClose }: { name: string; wish: string; by?: string; onClose: () => void }) {
+  const pieces = useMemo(
+    () => Array.from({ length: 42 }, (_, i) => ({
+      emoji: CONFETTI[i % CONFETTI.length],
+      left: Math.random() * 100,
+      delay: Math.random() * 0.8,
+      dur: 2.6 + Math.random() * 2.2,
+      size: 16 + Math.random() * 16,
+    })),
+    [],
+  );
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(20,26,22,.5)' }} onClick={onClose}>
+      <style>{`
+        @keyframes toyfall { 0%{ transform: translateY(-12vh) rotate(0); opacity:0 } 8%{opacity:1} 100%{ transform: translateY(112vh) rotate(360deg); opacity:1 } }
+        @keyframes toypop { 0%{ transform: scale(.7); opacity:0 } 60%{ transform: scale(1.04) } 100%{ transform: scale(1); opacity:1 } }
+      `}</style>
+      {pieces.map((p, i) => (
+        <span key={i} style={{ position: 'fixed', top: 0, left: `${p.left}%`, fontSize: p.size, animation: `toyfall ${p.dur}s linear ${p.delay}s infinite`, pointerEvents: 'none' }}>{p.emoji}</span>
+      ))}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', maxWidth: 360, width: '100%', background: '#fff', borderRadius: 20, padding: '30px 24px 26px', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,.3)', animation: 'toypop .45s ease both' }}
+      >
+        <div style={{ fontSize: 52, lineHeight: 1 }}>🎁</div>
+        <div style={{ fontSize: 21, fontWeight: 800, margin: '14px 0 4px', color: 'oklch(0.28 0.012 60)' }}>恭喜 {name}，全部完成！</div>
+        <div style={{ fontSize: 13, color: 'oklch(0.5 0.01 60)', marginBottom: 16 }}>清单上的每一项都搞定啦 🎉</div>
+        <div style={{ fontSize: 14.5, lineHeight: 1.7, color: 'oklch(0.32 0.02 60)', background: 'oklch(0.97 0.02 150)', borderRadius: 14, padding: '14px 16px' }}>{wish}</div>
+        {by && <div style={{ fontSize: 12.5, color: 'oklch(0.55 0.03 165)', marginTop: 12 }}>—— 来自 {by} 的祝福</div>}
+        <button onClick={onClose} style={{ marginTop: 20, padding: '11px 22px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>收下祝福 🥳</button>
+      </div>
+    </div>
+  );
 }
 
 function Check({ done }: { done: boolean }) {
@@ -39,6 +79,17 @@ export default function PlanView({ config, d }: { config: MoveConfig; d: string 
   const days = daysUntilMove(config);
   const countdown = days > 0 ? `距离搬家还有 ${days} 天` : days === 0 ? '就是今天，搬家日！🎉' : `已搬家 ${-days} 天`;
 
+  useEffect(() => { document.title = `${config.name}的搬家计划`; }, [config.name]);
+
+  const complete = total > 0 && doneCount === total;
+  const [celebrate, setCelebrate] = useState(false);
+  const wasComplete = useRef(false);
+  useEffect(() => {
+    if (complete && !wasComplete.current) setCelebrate(true); // fire once, when it becomes complete
+    wasComplete.current = complete;
+  }, [complete]);
+  const wish = (config.wish && config.wish.trim()) || DEFAULT_WISH;
+
   const byPhase = PHASE_ORDER
     .map((phase) => ({ phase, list: tasks.filter((t) => t.phase === phase) }))
     .filter((g) => g.list.length);
@@ -69,6 +120,16 @@ export default function PlanView({ config, d }: { config: MoveConfig; d: string 
             </div>
           </div>
         </div>
+
+        {/* Persistent "all done" banner (re-open the celebration) */}
+        {complete && (
+          <button
+            onClick={() => setCelebrate(true)}
+            style={{ width: 'calc(100% - 28px)', margin: '16px 14px 0', padding: '13px 16px', borderRadius: 14, border: '1px solid oklch(0.85 0.06 150)', background: 'oklch(0.96 0.04 150)', color: 'oklch(0.4 0.12 150)', fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'center' }}
+          >
+            🎉 全部完成！点这里再看一次祝福 🎁
+          </button>
+        )}
 
         {/* Phased task list */}
         <div style={{ padding: '20px 14px 0', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -110,6 +171,8 @@ export default function PlanView({ config, d }: { config: MoveConfig; d: string 
           </div>
         </div>
       </div>
+
+      {celebrate && <Celebration name={config.name} wish={wish} by={config.by} onClose={() => setCelebrate(false)} />}
     </div>
   );
 }

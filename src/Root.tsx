@@ -7,15 +7,20 @@ import { decodeConfig } from './toy/toyData';
 // plan link doesn't download the whole family app (and vice versa).
 const FamilyApp = lazy(() => import('./App'));
 const PlanView = lazy(() => import('./toy/PlanView'));
+const PlanLoader = lazy(() => import('./toy/PlanLoader'));
 const ConfigView = lazy(() => import('./toy/ConfigView'));
 
 export default function Root() {
   const path = typeof location !== 'undefined' ? location.pathname.replace(/\/+$/, '') : '';
-  const d = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('d') : null;
+  const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const p = params.get('p'); // short-code link
+  const d = params.get('d'); // self-contained fallback link
 
   let node: React.ReactNode;
   if (path === '/config') {
     node = <ConfigView />;
+  } else if (p) {
+    node = <PlanLoader code={p} />;
   } else if (d) {
     const cfg = decodeConfig(d);
     node = cfg ? <PlanView config={cfg} d={d} /> : <FamilyApp />; // bad link → fall back to the app

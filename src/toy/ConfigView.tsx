@@ -14,17 +14,33 @@ export default function ConfigView() {
   const [cfg, setCfg] = useState<MoveConfig>(() => ({ ...DEFAULT_CONFIG, name: '', from: '', to: '' }));
   const [copied, setCopied] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const set = <K extends keyof MoveConfig>(k: K, v: MoveConfig[K]) => setCfg((c) => ({ ...c, [k]: v }));
+  const [generating, setGenerating] = useState(false);
+  const [outLink, setOutLink] = useState('');
+  const set = <K extends keyof MoveConfig>(k: K, v: MoveConfig[K]) => { setCfg((c) => ({ ...c, [k]: v })); setOutLink(''); setCopied(false); };
 
   const missing = [
     !cfg.name.trim() && '名字', !cfg.from.trim() && '起点', !cfg.to.trim() && '终点', !cfg.date && '日期',
   ].filter(Boolean) as string[];
   const ready = missing.length === 0;
-  const link = ready ? `${location.origin}/?d=${encodeConfig(cfg)}` : '';
+
+  const generate = async () => {
+    setGenerated(true);
+    if (!ready) { setOutLink(''); return; }
+    setGenerating(true);
+    let out = '';
+    try {
+      const res = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config: cfg }) });
+      const j = await res.json();
+      if (j && j.code) out = `${location.origin}/?p=${j.code}`; // short, trustworthy link
+    } catch { /* fall through to the offline link */ }
+    if (!out) out = `${location.origin}/?d=${encodeConfig(cfg)}`; // fallback: self-contained link
+    setOutLink(out);
+    setGenerating(false);
+  };
 
   const copy = () => {
-    if (!link) return;
-    navigator.clipboard?.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); });
+    if (!outLink) return;
+    navigator.clipboard?.writeText(outLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); });
   };
 
   return (
@@ -73,13 +89,18 @@ export default function ConfigView() {
             <label style={label}>落款（你的名字，选填）</label>
             <input style={field} value={cfg.by ?? ''} onChange={(e) => set('by', e.target.value)} placeholder="一位老朋友" />
           </div>
+          <div>
+            <label style={label}>祝福语（全部完成时撒花送上，选填）</label>
+            <textarea style={{ ...field, minHeight: 60, resize: 'vertical', fontFamily: 'inherit' }} value={cfg.wish ?? ''} onChange={(e) => set('wish', e.target.value)} placeholder="乔迁之喜，愿你在新家一切顺利 🏡（留空则用默认祝福）" />
+          </div>
         </div>
 
         <button
-          onClick={() => setGenerated(true)}
-          style={{ marginTop: 24, width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+          onClick={generate}
+          disabled={generating}
+          style={{ marginTop: 24, width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: generating ? 'wait' : 'pointer', opacity: generating ? 0.7 : 1 }}
         >
-          生成链接
+          {generating ? '生成中…' : '生成链接'}
         </button>
 
         {generated && !ready && (
@@ -88,15 +109,15 @@ export default function ConfigView() {
           </div>
         )}
 
-        {generated && ready && (
+        {generated && ready && outLink && (
           <div style={{ marginTop: 14, padding: 16, background: 'white', border: '1px solid oklch(0.9 0.006 85)', borderRadius: 14 }}>
-            <div style={{ fontSize: 12, color: 'oklch(0.5 0.01 60)', marginBottom: 8 }}>专属链接已生成：</div>
-            <div style={{ fontSize: 12.5, wordBreak: 'break-all', background: 'oklch(0.97 0.005 85)', borderRadius: 8, padding: '9px 11px', color: 'oklch(0.4 0.01 60)', lineHeight: 1.5 }}>{link}</div>
+            <div style={{ fontSize: 12, color: 'oklch(0.5 0.01 60)', marginBottom: 8 }}>专属链接已生成（可直接发微信）：</div>
+            <div style={{ fontSize: 13, wordBreak: 'break-all', background: 'oklch(0.97 0.005 85)', borderRadius: 8, padding: '9px 11px', color: 'oklch(0.4 0.01 60)', lineHeight: 1.5 }}>{outLink}</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <button onClick={copy} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                 {copied ? '已复制 ✓' : '一键复制链接'}
               </button>
-              <a href={link} target="_blank" rel="noreferrer" style={{ padding: '11px 14px', borderRadius: 10, border: `1px solid ${ACCENT}`, background: 'white', color: ACCENT, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>预览</a>
+              <a href={outLink} target="_blank" rel="noreferrer" style={{ padding: '11px 14px', borderRadius: 10, border: `1px solid ${ACCENT}`, background: 'white', color: ACCENT, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>预览</a>
             </div>
           </div>
         )}

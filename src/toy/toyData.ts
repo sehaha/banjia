@@ -13,6 +13,7 @@ export interface MoveConfig {
   size: MoveSize;
   template: MoveTemplate;
   by?: string; // maker's signature (footer)
+  wish?: string; // a personal blessing, shown in the finish-all celebration
 }
 
 export const DEFAULT_CONFIG: MoveConfig = {
@@ -93,15 +94,20 @@ export function daysUntilMove(cfg: MoveConfig): number {
 }
 export const estBoxes = (cfg: MoveConfig): number => SIZE_BOXES[cfg.size] ?? 30;
 
-// ── URL codec: URL-safe base64 of the UTF-8 JSON (handles Chinese). ──
+// ── URL codec (fallback for the offline ?d= link). URL-safe base64 of the raw
+// UTF-8 bytes — ~3x shorter than %-escaping for Chinese. Primary sharing now uses
+// the short ?p=CODE link (api/plan.js); this stays as a no-backend fallback. ──
 export function encodeConfig(cfg: MoveConfig): string {
-  const b64 = btoa(encodeURIComponent(JSON.stringify(cfg)));
-  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // URL-safe (+ becomes space in queries)
+  const bytes = new TextEncoder().encode(JSON.stringify(cfg));
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // URL-safe (+ becomes space in queries)
 }
 export function decodeConfig(d: string): MoveConfig | null {
   try {
     const b64 = d.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (d.length % 4)) % 4);
-    const cfg = JSON.parse(decodeURIComponent(atob(b64)));
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const cfg = JSON.parse(new TextDecoder().decode(bytes));
     if (cfg && typeof cfg.name === 'string' && typeof cfg.date === 'string') return cfg as MoveConfig;
     return null;
   } catch { return null; }
