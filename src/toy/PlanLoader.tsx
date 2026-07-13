@@ -15,8 +15,8 @@ export default function PlanLoader({ code }: { code: string }) {
     return () => { alive = false; };
   }, [code]);
 
-  if (state.loading) return <Splash text="正在打开你的搬家计划…" />;
-  if (!state.cfg) return <Splash text="这个链接已失效或不存在 🥲" />;
+  if (state.loading) return <Splash text="正在打开… · Opening…" />;
+  if (!state.cfg) return <Splash text="这个链接已失效或不存在 · This link is invalid or has expired 🥲" />;
   return <PlanView config={state.cfg} d={code} />;
 }
 
