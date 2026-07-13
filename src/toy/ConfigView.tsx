@@ -13,9 +13,13 @@ const label: React.CSSProperties = { fontSize: 12.5, fontWeight: 600, color: 'ok
 export default function ConfigView() {
   const [cfg, setCfg] = useState<MoveConfig>(() => ({ ...DEFAULT_CONFIG, name: '', from: '', to: '' }));
   const [copied, setCopied] = useState(false);
+  const [generated, setGenerated] = useState(false);
   const set = <K extends keyof MoveConfig>(k: K, v: MoveConfig[K]) => setCfg((c) => ({ ...c, [k]: v }));
 
-  const ready = cfg.name.trim() && cfg.from.trim() && cfg.to.trim() && cfg.date;
+  const missing = [
+    !cfg.name.trim() && '名字', !cfg.from.trim() && '起点', !cfg.to.trim() && '终点', !cfg.date && '日期',
+  ].filter(Boolean) as string[];
+  const ready = missing.length === 0;
   const link = ready ? `${location.origin}/?d=${encodeConfig(cfg)}` : '';
 
   const copy = () => {
@@ -71,22 +75,31 @@ export default function ConfigView() {
           </div>
         </div>
 
-        <div style={{ marginTop: 24, padding: 16, background: 'white', border: '1px solid oklch(0.9 0.006 85)', borderRadius: 14 }}>
-          {ready ? (
-            <>
-              <div style={{ fontSize: 12, color: 'oklch(0.5 0.01 60)', marginBottom: 8 }}>专属链接已生成：</div>
-              <div style={{ fontSize: 12.5, wordBreak: 'break-all', background: 'oklch(0.97 0.005 85)', borderRadius: 8, padding: '9px 11px', color: 'oklch(0.4 0.01 60)', lineHeight: 1.5 }}>{link}</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={copy} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                  {copied ? '已复制 ✓' : '一键复制链接'}
-                </button>
-                <a href={link} target="_blank" rel="noreferrer" style={{ padding: '11px 14px', borderRadius: 10, border: `1px solid ${ACCENT}`, background: 'white', color: ACCENT, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>预览</a>
-              </div>
-            </>
-          ) : (
-            <div style={{ fontSize: 13, color: 'oklch(0.55 0.01 60)', textAlign: 'center', padding: '6px 0' }}>填好名字、起点、终点和日期，就会生成链接</div>
-          )}
-        </div>
+        <button
+          onClick={() => setGenerated(true)}
+          style={{ marginTop: 24, width: '100%', padding: '13px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+        >
+          生成链接
+        </button>
+
+        {generated && !ready && (
+          <div style={{ marginTop: 12, fontSize: 13, color: 'oklch(0.5 0.12 40)', background: 'oklch(0.97 0.03 60)', border: '1px solid oklch(0.9 0.05 60)', borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
+            还差：{missing.join('、')}
+          </div>
+        )}
+
+        {generated && ready && (
+          <div style={{ marginTop: 14, padding: 16, background: 'white', border: '1px solid oklch(0.9 0.006 85)', borderRadius: 14 }}>
+            <div style={{ fontSize: 12, color: 'oklch(0.5 0.01 60)', marginBottom: 8 }}>专属链接已生成：</div>
+            <div style={{ fontSize: 12.5, wordBreak: 'break-all', background: 'oklch(0.97 0.005 85)', borderRadius: 8, padding: '9px 11px', color: 'oklch(0.4 0.01 60)', lineHeight: 1.5 }}>{link}</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button onClick={copy} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                {copied ? '已复制 ✓' : '一键复制链接'}
+              </button>
+              <a href={link} target="_blank" rel="noreferrer" style={{ padding: '11px 14px', borderRadius: 10, border: `1px solid ${ACCENT}`, background: 'white', color: ACCENT, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>预览</a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

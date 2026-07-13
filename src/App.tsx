@@ -149,6 +149,10 @@ export default function App() {
                 <FooterBtn onClick={() => fileRef.current?.click()}>{t('导入', 'Import')}</FooterBtn>
                 <FooterBtn onClick={() => { if (confirm(t('确定重置为初始数据？当前进度将清空。', 'Reset to the initial data? Current progress will be cleared.'))) store.resetAll(); }}>{t('重置', 'Reset')}</FooterBtn>
               </div>
+              {/* 站长入口: build a shareable plan to send a friend (only the owner sees this) */}
+              <a href="/config" title={t('生成一份发给朋友的搬家计划', 'Make a moving plan to send a friend')} style={{ marginTop: 6, fontSize: 11, color: 'oklch(0.62 0.03 165)', textDecoration: 'none' }}>
+                {t('＋ 生成朋友版链接', '＋ Make a friend’s plan')}
+              </a>
             </div>
           </aside>
         )}
