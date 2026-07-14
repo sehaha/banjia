@@ -8,18 +8,33 @@ Documentation for **banjia (Move Guide)** — a family moving-coordination app.
 
 ---
 
-## 文档 / Documents
+## API 参考 / API Reference
 
 | 文件 | 语言 | 用途 |
 |---|---|---|
 | [api-reference.md](./api-reference.md) | 中英对照 / Bilingual | 完整 API 参考（Yodeck 结构）。适合导入飞书文档阅读。 |
 | [api-reference.en.md](./api-reference.en.md) | English | 纯英文版参考，方便英文读者阅读/分享。 |
 | [openapi.yaml](./openapi.yaml) | OpenAPI 3.0.3 | 机器可读规范，可导入 Apifox / Postman / 飞书 API 表格，一键测试。 |
-| [lark-integration.md](./lark-integration.md) | 中文 / Chinese | **复用手册**：把「与 Lark 打通」的能力抽成可移植模块，含配置清单、调用实例、建议。 |
-| [examples/lark-core.js](./examples/lark-core.js) | JS module | 去耦合、可直接拷贝的 Lark 核心模块（`getTenantToken` / `larkApi` / `sendCard` / `parseEvent` …）。 |
 
 三份内容一致，按需求选格式：**读文档**用 `.md`，**测接口**用 `openapi.yaml`。
 All three cover the same surface — use the `.md` files to **read**, `openapi.yaml` to **test**.
+
+---
+
+## Lark 复用工具包 / Reusable Lark Toolkit
+
+想在**其他项目**里接飞书？把 [`examples/`](./examples/) 目录拷过去即可 —— 零第三方依赖，配好环境变量就能用。
+
+| 文件 | 说明 |
+|---|---|
+| [lark-integration.md](./lark-integration.md) | **复用手册**：能力总览、飞书后台配置清单、调用实例、实质建议与踩坑。 |
+| [examples/lark-core.js](./examples/lark-core.js) | 去耦合的核心模块（`getTenantToken` / `larkApi` / `sendText·sendCard·sendCardToMany` / 卡片积木 / `parseEvent·verifyToken·seenEvent`）。 |
+| [examples/lark-core.d.ts](./examples/lark-core.d.ts) | TypeScript 类型声明（`--strict` 通过，与 `.js` 同目录自动识别）。 |
+| [examples/server.express.js](./examples/server.express.js) | 最小可跑的 Express 机器人（事件 webhook + `/send` 测试）。 |
+| [examples/vercel-api-lark-event.js](./examples/vercel-api-lark-event.js) | Vercel Serverless 版事件 webhook（放到 `api/lark-event.js`）。 |
+| [examples/README.md](./examples/README.md) | 环境变量 + 运行指南（Express + 隧道联调 / Vercel / TypeScript）。 |
+
+> 抓手：**`getTenantToken` + `larkApi` 是地基**，发消息 / 卡片 / 事件 / 日历都是其上的薄封装。
 
 ---
 
@@ -32,6 +47,10 @@ New → Import → pick a `.md` file, or copy-paste the whole file into a Lark d
 **导入 Apifox / Postman**
 Import → OpenAPI/Swagger → 选择 `docs/openapi.yaml`。
 Import → OpenAPI/Swagger → select `docs/openapi.yaml`.
+
+**复用 Lark / Reuse the Lark toolkit**
+拷 `docs/examples/` → 配环境变量 → `node server.express.js`（或部署到 Vercel）。详见 [examples/README.md](./examples/README.md)。
+Copy `docs/examples/`, set the env vars, run it. See [examples/README.md](./examples/README.md).
 
 ---
 
@@ -57,8 +76,8 @@ Backend-light: a static SPA (localStorage + multi-device sync) plus Vercel serve
 
 ## 维护 / Maintenance
 
-端点有增改时，同步更新这三份文件（保持一致），再重新导入飞书 / Apifox 即可。
-When endpoints change, update all three files together, then re-import into Lark / Apifox.
+- 端点有增改：同步更新三份 API 参考（`.md` ×2 + `openapi.yaml`），再重新导入飞书 / Apifox。
+- Lark 能力有增改：更新 `examples/lark-core.js`（及其 `.d.ts`）与 `lark-integration.md`。
 
 > ⚠️ 所有密钥仅走环境变量，切勿写入文档或提交仓库。
 > ⚠️ All secrets stay in environment variables — never in docs or commits.
