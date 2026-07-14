@@ -1,0 +1,626 @@
+openapi: 3.0.3
+info:
+  title: Move Guide API
+  version: "1.0.0"
+  description: |
+    Serverless API for **banjia (Move Guide)** — a backend-light family
+    moving-coordination app. Covers the AI assistant, multi-device sync, Lark
+    (Feishu) integration, and a share-by-link "moving plan for a friend" feature.
+
+    - Most endpoints are unauthenticated (single-family app).
+    - Admin/scheduled endpoints use `CRON_SECRET` (Bearer header or query param).
+    - Lark webhooks are verified via encryption + a verification token and are
+      **called by the Lark Open Platform, not by clients**.
+    - Secrets are injected via environment variables only.
+servers:
+  - url: https://banjia-two.vercel.app
+    description: Production
+
+tags:
+  - name: Assistant
+  - name: Sync
+  - name: Plan
+  - name: Complete
+  - name: Lark Push
+  - name: Lark Webhooks
+  - name: Scheduled / Admin
+
+security: []
+
+paths:
+  /api/assistant:
+    post:
+      tags: [Assistant]
+      summary: Run one turn of the AI moving assistant
+      description: Shared "brain" used by both the web app and the Lark group bot. Returns a reply plus structured actions to apply to the board.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages, context]
+              properties:
+                messages:
+                  type: array
+                  items: { $ref: '#/components/schemas/ChatMessage' }
+                context: { $ref: '#/components/schemas/AssistantContext' }
+            example:
+              messages:
+                - { role: user, content: "Add a task for Dad: measure the sofa tomorrow" }
+              context:
+                lang: en
+                today: "7/9 Thu"
+                members: [{ id: dad, name: Dad, role: "" }]
+                tasks: []
+                progress: { total: 0, done: 0 }
+      responses:
+        '200':
+          description: Assistant reply and actions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistantResponse' }
+              example:
+                reply: "Done — added it."
+                actions:
+                  - { type: add_task, title: "Measure the sofa", owner: Dad, date: "07-10", priority: P1 }
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/sync:
+    get:
+      tags: [Sync]
+      summary: Read a room's board envelope
+      parameters:
+        - name: room
+          in: query
+          required: true
+          schema: { type: string, example: "55VA8N" }
+      responses:
+        '200':
+          description: The envelope, or null when empty / not configured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured: { type: boolean }
+                  envelope:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/Envelope'
+        '400':
+          description: room required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      tags: [Sync]
+      summary: Write (overwrite) a room's board envelope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [room, envelope]
+              properties:
+                room: { type: string }
+                envelope: { $ref: '#/components/schemas/Envelope' }
+      responses:
+        '200':
+          description: Write result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured: { type: boolean }
+                  ok: { type: boolean }
+        '400':
+          description: room and envelope required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/plan:
+    post:
+      tags: [Plan]
+      summary: Store a share-by-link moving plan, return a short code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config: { $ref: '#/components/schemas/MoveConfig' }
+      responses:
+        '200':
+          description: The short code (share link = /?p=<code>)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured: { type: boolean }
+                  code: { type: string, example: "5DFD6VG" }
+        '400':
+          description: config required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      tags: [Plan]
+      summary: Fetch a plan config by short code
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string, example: "5DFD6VG" }
+      responses:
+        '200':
+          description: The stored config, or null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured: { type: boolean }
+                  config:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/MoveConfig'
+        '400':
+          description: code required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/complete:
+    get:
+      tags: [Complete]
+      summary: Deep-link task completion (returns an HTML page)
+      description: Marks a task done in the shared board and returns a styled HTML confirmation page (not JSON). Used by the "I'll do it" button on Lark cards.
+      parameters:
+        - name: room
+          in: query
+          required: true
+          schema: { type: string }
+        - name: task
+          in: query
+          required: true
+          schema: { type: string }
+        - name: t
+          in: query
+          required: false
+          description: Task title for display (URL-encoded)
+          schema: { type: string }
+      responses:
+        '200':
+          description: HTML confirmation page
+          content:
+            text/html:
+              schema: { type: string }
+
+  /api/lark:
+    get:
+      tags: [Lark Push]
+      summary: Report whether Lark is configured
+      responses:
+        '200':
+          description: Configuration status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configured: { type: boolean }
+    post:
+      tags: [Lark Push]
+      summary: Push a brief/alert card to all family members
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind: { type: string, enum: [brief, alert], default: brief }
+                board: { $ref: '#/components/schemas/SharedBoard' }
+                today: { type: string, example: "07-09" }
+                room: { type: string }
+                appUrl: { type: string }
+                title: { type: string }
+                content: { type: string }
+      responses:
+        '200':
+          description: Push result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PushResult' }
+
+  /api/lark-event:
+    post:
+      tags: [Lark Webhooks]
+      summary: Lark event subscription (im.message.receive_v1)
+      description: |
+        Called by the Lark Open Platform. Handles the url_verification handshake,
+        decrypts AES payloads when LARK_ENCRYPT_KEY is set, dedupes by event_id,
+        runs the assistant on the room board when @mentioned (always in DMs), and
+        replies in the chat. Not called by clients.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LarkWebhookBody' }
+      responses:
+        '200':
+          description: Empty object, or the url_verification challenge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge: { type: string }
+
+  /api/lark-callback:
+    post:
+      tags: [Lark Webhooks]
+      summary: Lark message-card callback (compatibility)
+      description: Handles card.action.trigger / legacy card callbacks. On a complete_task action, marks the task done and returns a "done" card. Superseded in production by /api/complete.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LarkWebhookBody' }
+      responses:
+        '200':
+          description: Card / toast payload, challenge, or empty object
+          content:
+            application/json:
+              schema: { type: object }
+
+  /api/cron/remind:
+    get:
+      tags: [Scheduled / Admin]
+      summary: Scheduled daily brief to the Lark group
+      description: Vercel Cron "0 15 * * *" (~8am US-Pacific). Reads the LARK_SYNC_ROOM board and pushes today's brief to all family members.
+      security:
+        - CronBearer: []
+      responses:
+        '200':
+          description: Push result, or a reason it was skipped
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PushResult' }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/lark-calendar:
+    post:
+      tags: [Scheduled / Admin]
+      summary: Create move milestones on a Lark calendar (idempotent)
+      security:
+        - CronBearer: []
+        - CronKeyQuery: []
+      parameters:
+        - name: key
+          in: query
+          required: false
+          description: Alternative to the Bearer header — CRON_SECRET
+          schema: { type: string }
+      responses:
+        '200':
+          description: syncMilestones result
+          content:
+            application/json:
+              schema: { type: object }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/lark-guide:
+    get:
+      tags: [Scheduled / Admin]
+      summary: DM a "how to use" guide card to a family member
+      security:
+        - CronSecretQuery: []
+        - CronBearer: []
+      parameters:
+        - name: secret
+          in: query
+          required: false
+          description: CRON_SECRET (or use the Bearer header)
+          schema: { type: string }
+        - name: user
+          in: query
+          required: false
+          description: Lark user_id (defaults to 783a2174)
+          schema: { type: string }
+        - name: kind
+          in: query
+          required: false
+          schema: { type: string, enum: [general, assistant], default: general }
+      responses:
+        '200':
+          description: Send result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { type: string }
+                  kind: { type: string }
+                  configured: { type: boolean }
+                  ok: { type: boolean }
+                  code: { type: integer }
+                  msg: { type: string }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  securitySchemes:
+    CronBearer:
+      type: http
+      scheme: bearer
+      description: "Authorization: Bearer <CRON_SECRET>"
+    CronSecretQuery:
+      type: apiKey
+      in: query
+      name: secret
+      description: CRON_SECRET as the `secret` query param
+    CronKeyQuery:
+      type: apiKey
+      in: query
+      name: key
+      description: CRON_SECRET as the `key` query param
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string }
+
+    Member:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+
+    AssistantContext:
+      type: object
+      required: [today, members, tasks, progress]
+      properties:
+        lang: { type: string, enum: [zh, en], description: "'en' → assistant replies in English" }
+        today: { type: string, example: "7/9 Thu" }
+        person: { type: string }
+        schedule:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string }
+              weekday: { type: string }
+              stage: { type: string }
+              goal: { type: string }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/Member' }
+        tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              owner: { type: string }
+              date: { type: string }
+              priority: { type: string }
+              status: { type: string }
+              blocking: { type: boolean }
+        utils:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              provider: { type: string }
+              type: { type: string }
+              status: { type: string }
+              note: { type: string }
+        docs:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              tag: { type: string }
+              body: { type: string }
+        memory:
+          type: array
+          items: { type: string }
+        progress:
+          type: object
+          properties:
+            total: { type: integer }
+            done: { type: integer }
+            pct: { type: integer }
+            inProgress: { type: integer }
+            p0Remaining: { type: integer }
+
+    AssistantAction:
+      type: object
+      required: [type]
+      additionalProperties: true
+      description: |
+        One of 12 structured operations. Fields depend on `type`:
+        add_task(title, owner?, date?, priority?, category?), reassign(match, owner),
+        set_status(match, status), set_priority(match, priority), set_date(match, date),
+        set_blocking(match, blocking), delete_task(match), add_member(name, role?),
+        rename_member(match, name), set_utility(name, status), bulk_update(filter, set),
+        remember(note). `match` = task-title keyword (fuzzy).
+      properties:
+        type:
+          type: string
+          enum: [add_task, reassign, set_status, set_priority, set_date, set_blocking, delete_task, add_member, rename_member, set_utility, bulk_update, remember]
+        title: { type: string }
+        match: { type: string }
+        owner: { type: string }
+        name: { type: string }
+        role: { type: string }
+        date: { type: string, description: "MM-DD" }
+        priority: { type: string, enum: [P0, P1, P2] }
+        status: { type: string, enum: [not_started, in_progress, done, issue] }
+        blocking: { type: boolean }
+        category: { type: string }
+        note: { type: string }
+        filter: { type: object }
+        set: { type: object }
+
+    AssistantResponse:
+      type: object
+      properties:
+        reply: { type: string }
+        actions:
+          type: array
+          items: { $ref: '#/components/schemas/AssistantAction' }
+
+    Task:
+      type: object
+      required: [id, title, owner, date, category, priority, blocking, status]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        owner: { type: string }
+        date: { type: string, description: "MM-DD" }
+        category: { type: string }
+        priority: { type: string, enum: [P0, P1, P2] }
+        blocking: { type: boolean }
+        status: { type: string, enum: [not_started, in_progress, done, issue] }
+        description: { type: string }
+        notes: { type: string }
+        phone: { type: string }
+        link: { type: string }
+
+    Utility:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [new, old] }
+        name: { type: string }
+        provider: { type: string }
+        address: { type: string }
+        start: { type: string }
+        status: { type: string, enum: [not_started, in_progress, done, issue] }
+        note: { type: string }
+
+    DocTemplate:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        tag: { type: string }
+        body: { type: string }
+
+    Person:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+        hue: { type: number }
+
+    SharedBoard:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items: { $ref: '#/components/schemas/Task' }
+        utils:
+          type: array
+          items: { $ref: '#/components/schemas/Utility' }
+        docs:
+          type: array
+          items: { $ref: '#/components/schemas/DocTemplate' }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/Person' }
+        memory:
+          type: array
+          items: { type: string }
+
+    Envelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/SharedBoard' }
+        rev: { type: integer, description: monotonic version }
+        updatedAt: { type: integer, format: int64, description: ms timestamp }
+        origin: { type: string, description: "writer id (client id, or 'lark')" }
+
+    MoveConfig:
+      type: object
+      required: [name, from, to, date, size, template]
+      properties:
+        name: { type: string, description: the friend's name }
+        from: { type: string, example: "San Francisco, CA" }
+        to: { type: string, example: "Seattle, WA" }
+        date: { type: string, format: date, description: "move day YYYY-MM-DD" }
+        size: { type: string, enum: [studio, 1br, 2br, 3br] }
+        template: { type: string, enum: [local, long] }
+        by: { type: string, description: signature }
+        wish: { type: string, description: blessing shown on completion }
+        lang: { type: string, enum: [zh, en], description: plan render language }
+
+    PushResult:
+      type: object
+      properties:
+        configured: { type: boolean }
+        ok: { type: boolean }
+        sent: { type: integer }
+        total: { type: integer }
+        error: { type: string }
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              userId: { type: string }
+              ok: { type: boolean }
+              code: { type: integer }
+              msg: { type: string }
+
+    LarkWebhookBody:
+      type: object
+      description: |
+        A Lark event envelope. Either an encrypted payload `{ encrypt }` (when
+        LARK_ENCRYPT_KEY is set), or a plaintext url_verification `{ type, challenge, token }`,
+        or a decrypted event with `header` + `event`.
+      properties:
+        encrypt: { type: string }
+        type: { type: string, example: url_verification }
+        challenge: { type: string }
+        token: { type: string }
+        header: { type: object }
+        event: { type: object }
+      additionalProperties: true
