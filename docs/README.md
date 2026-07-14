@@ -15,6 +15,8 @@ Documentation for **banjia (Move Guide)** — a family moving-coordination app.
 | [api-reference.md](./api-reference.md) | 中英对照 / Bilingual | 完整 API 参考（Yodeck 结构）。适合导入飞书文档阅读。 |
 | [api-reference.en.md](./api-reference.en.md) | English | 纯英文版参考，方便英文读者阅读/分享。 |
 | [openapi.yaml](./openapi.yaml) | OpenAPI 3.0.3 | 机器可读规范，可导入 Apifox / Postman / 飞书 API 表格，一键测试。 |
+| [lark-integration.md](./lark-integration.md) | 中文 / Chinese | **复用手册**：把「与 Lark 打通」的能力抽成可移植模块，含配置清单、调用实例、建议。 |
+| [examples/lark-core.js](./examples/lark-core.js) | JS module | 去耦合、可直接拷贝的 Lark 核心模块（`getTenantToken` / `larkApi` / `sendCard` / `parseEvent` …）。 |
 
 三份内容一致，按需求选格式：**读文档**用 `.md`，**测接口**用 `openapi.yaml`。
 All three cover the same surface — use the `.md` files to **read**, `openapi.yaml` to **test**.
