@@ -25,6 +25,8 @@ All three cover the same surface — use the `.md` files to **read**, `openapi.y
 
 想在**其他项目**里接飞书？把 [`examples/`](./examples/) 目录拷过去即可 —— 零第三方依赖，配好环境变量就能用。
 
+> 📦 已抽成独立私有仓库：**[github.com/sehaha/lark-core](https://github.com/sehaha/lark-core)**（含家庭成员名单 `members.js`）。新项目优先用它；下面是同源副本。
+
 | 文件 | 说明 |
 |---|---|
 | [lark-integration.md](./lark-integration.md) | **复用手册**：能力总览、飞书后台配置清单、调用实例、实质建议与踩坑。 |

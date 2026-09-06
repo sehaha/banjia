@@ -2,6 +2,8 @@
 
 可直接复用的 Lark（飞书）集成模块与最小可跑示例。配套说明见 [../lark-integration.md](../lark-integration.md)。
 
+> 📦 **已抽成独立私有仓库：[github.com/sehaha/lark-core](https://github.com/sehaha/lark-core)**（含家庭成员名单 `members.js` 等）。新项目直接用那个仓库；此处为随搬家项目一起维护的同源副本。
+
 ## 文件
 
 | 文件 | 说明 |
