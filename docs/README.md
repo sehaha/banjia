@@ -30,6 +30,7 @@ All three cover the same surface — use the `.md` files to **read**, `openapi.y
 | 文件 | 说明 |
 |---|---|
 | [lark-integration.md](./lark-integration.md) | **复用手册**：能力总览、飞书后台配置清单、调用实例、实质建议与踩坑。 |
+| [INTEGRATION_PROMPT.md](./INTEGRATION_PROMPT.md) | **集成提示词**（中/英）+ webhook 说明 —— 复制发给其他项目即可接入。 |
 | [examples/lark-core.js](./examples/lark-core.js) | 去耦合的核心模块（`getTenantToken` / `larkApi` / `sendText·sendCard·sendCardToMany` / 卡片积木 / `parseEvent·verifyToken·seenEvent`）。 |
 | [examples/lark-core.d.ts](./examples/lark-core.d.ts) | TypeScript 类型声明（`--strict` 通过，与 `.js` 同目录自动识别）。 |
 | [examples/server.express.js](./examples/server.express.js) | 最小可跑的 Express 机器人（事件 webhook + `/send` 测试）。 |
